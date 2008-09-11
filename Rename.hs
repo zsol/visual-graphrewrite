@@ -1,5 +1,7 @@
 
 {-# LANGUAGE FlexibleInstances #-}
+module Rename 
+where
 
 import Data.Supply	-- egyedi azonosítók szétosztásához;  value-supply csomagban
 
@@ -114,7 +116,7 @@ renameExpr b (Apply l) ids = fmap (mapSnd Apply) $ renameExprs b l ids
 renameExpr b (Let l e) ids = do
   let (ids1, ids2) = split2 ids
 
-  (l_names, l') <- renameDecls b l ids1
+  (l_names, l') <- renameDecls' b l ids1
 
   let b' = namesToBinds l_names
   let b'' = union b' b
@@ -126,6 +128,21 @@ renameExpr b (Let l e) ids = do
 renameExprs :: Binds -> [Expr String] -> Ids -> Maybe' (Names, [Expr Int])
 renameExprs b exprs ids = fmap (mapFst I.unions . unzip) $ sequence [renameExpr b e i | (e,i)<- zip exprs (split ids)]
 
+--Ugyanaz, mint fent, csak a sorrend szamit
+renameExprs' :: Binds -> [Expr String] -> Ids -> Maybe' (Names, [Expr Int])
+renameExprs' b (eh:es) ids = do
+  let (ids1, ids2) = split2 ids
+
+  (eh_names, eh') <- renameExpr b eh ids1
+
+  let b' = union (namesToBinds eh_names) b
+
+  (es_names, es') <- renameExprs' b' es ids2
+
+  return (I.union eh_names es_names, (eh':es'))
+
+renameExprs' _ [] _ = Right (I.empty, [])
+
 renameDecl  :: Binds ->  Decl String  -> Ids -> Maybe' (Names,  Decl Int )
 renameDecl b (FunBind fas) ids = do
   let (ids1, ids2) = split2 ids
@@ -135,7 +152,7 @@ renameDecl b (FunBind fas) ids = do
 
   let b'' = union b' b
   
-  (names, funalts) <- renameFunAlts b'' fas ids2
+  (names, funalts) <- renameFunAlts' b'' fas ids2
 
   return (I.union f_names names, FunBind funalts)
 
@@ -168,9 +185,38 @@ renameFunAlt b (f, as, e) ids = do --elofeltetel: f mar at van nevezve, es b-ben
 
 renameFunAlts :: Binds -> [FunAlt String] -> Ids -> Maybe' (Names, [FunAlt Int])
 renameFunAlts b funalts ids = fmap (mapFst I.unions . unzip) $ sequence [renameFunAlt b f i | (f,i) <- zip funalts (split ids)]
+
+--Mint az elozo, csak a sorrend szamit
+renameFunAlts' :: Binds -> [FunAlt String] -> Ids -> Maybe' (Names, [FunAlt Int])
+renameFunAlts' b (fh:fs) ids = do
+  let (ids1, ids2) = split2 ids
+                     
+  (fh_names, fh') <- renameFunAlt b fh ids1
+
+  let b' = union (namesToBinds fh_names) b
+
+  (fs_names, fs') <- renameFunAlts' b' fs ids2
+
+  return (I.union fh_names fs_names, (fh':fs'))
+
+renameFunAlts' _ [] _ = Right (I.empty, [])
   
 renameDecls :: Binds -> [Decl String] -> Ids -> Maybe' (Names, [Decl Int])
 renameDecls b decls ids = fmap (mapFst I.unions . unzip) $ sequence [renameDecl b d i | (d,i) <- zip decls (split ids)]
+
+renameDecls' :: Binds -> [Decl String] -> Ids -> Maybe' (Names, [Decl Int])
+renameDecls' b (dh:ds) ids = do
+  let (ids1, ids2) = split2 ids
+
+  (dh_names, dh') <- renameDecl b dh ids1
+
+  let b' = union (namesToBinds dh_names) b
+
+  (ds_names, ds') <- renameDecls' b' ds ids2
+
+  return (I.union dh_names ds_names, (dh':ds'))
+
+renameDecls' _ [] _ = Right (I.empty, [])
 
 -------------------------------------------------
 {-
@@ -188,7 +234,7 @@ renameMain :: Expr String -> Ids -> Maybe' (Names, Expr Int)
 renameMain expr ids = renameExpr empty expr ids
 
 rename :: Module' String -> Ids -> Maybe' (Names, Module' Int)
-rename decls ids = renameDecls empty decls ids
+rename decls ids = renameDecls' empty decls ids
   
 
 --main = mapM_ test tests
