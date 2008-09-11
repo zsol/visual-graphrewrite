@@ -27,7 +27,7 @@ data Decl a
 type FunAlt a = (a, [a], (Expr a))
 
 data Expr a 
-	= Let [(a, Expr a)] (Expr a)
+	= Let [Decl a] (Expr a)
 	| Var a
 	| Apply [Expr a]
 	| Lit String
@@ -36,6 +36,43 @@ data Expr a
 type Binds = Map String Int
 type Names = I.IntMap String
 type Ids   = Supply Int
+
+-- hibaüzenet vagy érték
+type Maybe' a = Either String a
+
+instance Monad (Either String) where
+
+	a >>= b = case a of
+		Left err	-> fail err
+		Right x		-> b x
+
+	fail a = Left a
+
+	return a = Right a
+
+------------------------------------------------
+swap :: (a, b) -> (b, a)
+swap = \(x,y) -> (y,x)
+
+namesToBinds :: Names -> Binds
+namesToBinds = fromList . (map swap) . I.toList
+
+bindsToNames :: Binds -> Names
+bindsToNames = I.fromList . (map swap) . toList
+
+distributeIds :: [String] -> Ids -> Maybe' (Binds, Names, [Int])
+distributeIds l ids = case duplicates l of
+	(x:_) -> fail $ "multiply defined: " ++ x
+	_	-> return (fromList $ zip l i, I.fromList $ zip i l, i)
+ where
+	i = take (length l) $ map supplyValue $ split ids
+
+duplicates :: Ord a => [a] -> [a]
+duplicates = catMaybes . map (listToMaybe . tail) . group . sort
+
+mapFst f (a,b) = (f a, b)
+mapSnd f (a,b) = (a, f b)
+
 
 ------------------------------------------------
 
@@ -63,31 +100,7 @@ convExpr :: HsExp -> Expr String
 convExpr (HsVar (UnQual (HsIdent var))) = Var var
 convExpr (HsApp exp1 exp2)  = Apply [convExpr exp1, convExpr exp2]
 convExpr (HsLit literal)    = Lit (show literal)
---convExpr (HsLet decls exp)  = 
-
--------------------------------------------------
-
--- hibaüzenet vagy érték
-type Maybe' a = Either String a
-
-instance Monad (Either String) where
-
-	a >>= b = case a of
-		Left err	-> fail err
-		Right x		-> b x
-
-	fail a = Left a
-
-	return a = Right a
-
-------------------------------------------------- auxiliary
-
--- megmondja hogy miből van több
-duplicates :: Ord a => [a] -> [a]
-duplicates = catMaybes . map (listToMaybe . tail) . group . sort
-
-mapFst f (a,b) = (f a, b)
-mapSnd f (a,b) = (a, f b)
+convExpr (HsLet decls exp)  = Let (map convDecl decls) (convExpr exp)
 
 -------------------------------------------------
 
@@ -99,19 +112,16 @@ renameExpr b (Var v) ids = case lookup v b of
 	Just i		-> return (I.empty, Var i)
 renameExpr b (Apply l) ids = fmap (mapSnd Apply) $ renameExprs b l ids
 renameExpr b (Let l e) ids = do
---TODO: atirni Let [Decl String] ...-ra
--- lehet, hogy kelleni fog names->binds konverzio
-	let (lhss, rhss) = unzip l
-	let (ids1, ids2, ids3) = split3 ids
+  let (ids1, ids2) = split2 ids
 
-	(b', lhss_names, lhss') <- distributeIds lhss ids1
+  (l_names, l') <- renameDecls b l ids1
 
-	let b'' = union b' b		-- itt fedjük el a felsőbb neveket
+  let b' = namesToBinds l_names
+  let b'' = union b' b
 
-	(rhss_names, rhss') <- renameExprs b'' rhss ids2
-	(e_names, e') <- renameExpr b'' e ids3
-
-	return (I.unions [lhss_names, rhss_names, e_names], Let (zip lhss' rhss') e')
+  (e_names, e') <- renameExpr b'' e ids2
+  
+  return (I.unions [l_names,  e_names], Let l' e')
 
 renameExprs :: Binds -> [Expr String] -> Ids -> Maybe' (Names, [Expr Int])
 renameExprs b exprs ids = fmap (mapFst I.unions . unzip) $ sequence [renameExpr b e i | (e,i)<- zip exprs (split ids)]
@@ -162,16 +172,8 @@ renameFunAlts b funalts ids = fmap (mapFst I.unions . unzip) $ sequence [renameF
 renameDecls :: Binds -> [Decl String] -> Ids -> Maybe' (Names, [Decl Int])
 renameDecls b decls ids = fmap (mapFst I.unions . unzip) $ sequence [renameDecl b d i | (d,i) <- zip decls (split ids)]
 
-distributeIds :: [String] -> Ids -> Maybe' (Binds, Names, [Int])
-distributeIds l ids = case duplicates l of
-	(x:_) -> fail $ "multiply defined: " ++ x
-	_	-> return (fromList $ zip l i, I.fromList $ zip i l, i)
- where
-	i = take (length l) $ map supplyValue $ split ids
-
-
 -------------------------------------------------
-
+{-
 invRename :: Names -> Expr Int -> Expr String
 invRename names expr = f expr  where
 
@@ -179,7 +181,7 @@ invRename names expr = f expr  where
 	f (Apply l) = Apply (map f l)
 	f (Var v) = Var (names I.! v)
 	f (Lit s) = Lit s
-
+-}
 -------------------------------------------------
 
 renameMain :: Expr String -> Ids -> Maybe' (Names, Expr Int)
@@ -189,7 +191,7 @@ rename :: Module' String -> Ids -> Maybe' (Names, Module' Int)
 rename decls ids = renameDecls empty decls ids
   
 
-main = mapM_ test tests
+--main = mapM_ test tests
 
 test (Test x z) = do
 	putStrLn "------------------------------- Test"
@@ -203,13 +205,13 @@ test (Test x z) = do
 		Right (names, y)	-> case z of
 			Nothing	-> do
 				print y
-				putStrLn $ "invRename test: " ++ if invRename names y == x then "OK" else "FAILED!"
+--				putStrLn $ "invRename test: " ++ if invRename names y == x then "OK" else "FAILED!"
 			Just err	-> do
 				putStrLn $ "!Expected error " ++ err ++ " but got"
 				print y
 
 data Test = Test (Expr String) (Maybe String)
-
+{-
 tests =
 	[ Test
 		(Let
@@ -235,6 +237,6 @@ tests =
 				] (Var "x")))
 		Nothing
 	]
-
+-}
 
 
