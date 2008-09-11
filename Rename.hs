@@ -6,11 +6,25 @@ import Data.Supply	-- egyedi azonosítók szétosztásához;  value-supply csoma
 import Data.Map hiding (map, split)
 
 import Data.Maybe
-import Data.List hiding (lookup, union)
+import Data.List hiding (lookup, union, insert)
 import Prelude hiding (lookup)
 
+import qualified Data.IntMap as I
+import qualified Data.List (lookup)
+
+import Language.Haskell.Syntax
+import Language.Haskell.Parser
 
 -------------------------------------------------
+
+type Module' a = [Decl a]
+
+data Decl a
+    = FunBind [FunAlt a]
+    | PatBind a (Expr a)
+      deriving (Show, Eq)
+
+type FunAlt a = (a, [a], (Expr a))
 
 data Expr a 
 	= Let [(a, Expr a)] (Expr a)
@@ -20,8 +34,36 @@ data Expr a
 		deriving (Show, Eq)
 
 type Binds = Map String Int
-type Names = Map Int String
+type Names = I.IntMap String
 type Ids   = Supply Int
+
+------------------------------------------------
+
+convParse :: ParseResult HsModule -> Module' String
+convParse (ParseFailed _ _) = []
+convParse (ParseOk m)       = convModule m
+
+convModule :: HsModule -> Module' String
+convModule (HsModule _ m exp imp decl) = map convDecl decl
+
+convDecl :: HsDecl -> Decl String
+convDecl (HsFunBind hsmatch) = FunBind (map convMatch hsmatch)
+convDecl (HsPatBind _ pat rhs decl) = PatBind (convPars pat) (convRhs rhs)
+
+convMatch :: HsMatch -> FunAlt String
+convMatch (HsMatch _ (HsIdent fname) pars expr _) = (fname, map convPars pars, convRhs expr)
+
+convPars :: HsPat -> String --FIXME
+convPars (HsPVar (HsIdent n)) = n
+
+convRhs :: HsRhs -> Expr String
+convRhs (HsUnGuardedRhs expr) = convExpr expr
+
+convExpr :: HsExp -> Expr String
+convExpr (HsVar (UnQual (HsIdent var))) = Var var
+convExpr (HsApp exp1 exp2)  = Apply [convExpr exp1, convExpr exp2]
+convExpr (HsLit literal)    = Lit (show literal)
+--convExpr (HsLet decls exp)  = 
 
 -------------------------------------------------
 
@@ -50,14 +92,15 @@ mapSnd f (a,b) = (a, f b)
 -------------------------------------------------
 
 -- a legfontosabb függvény
-rename :: Binds -> Expr String -> Ids -> Maybe' (Names, Expr Int)
-rename b (Lit s) ids = return (empty, Lit s)
-rename b (Var v) ids = case lookup v b of
+renameExpr :: Binds -> Expr String -> Ids -> Maybe' (Names, Expr Int)
+renameExpr b (Lit s) ids = return (I.empty, Lit s)
+renameExpr b (Var v) ids = case lookup v b of
 	Nothing		-> fail $ "not defined: " ++ v
-	Just i		-> return (empty, Var i)
-rename b (Apply l) ids = fmap (mapSnd Apply) $ renames b l ids
-rename b (Let l e) ids = do
-
+	Just i		-> return (I.empty, Var i)
+renameExpr b (Apply l) ids = fmap (mapSnd Apply) $ renameExprs b l ids
+renameExpr b (Let l e) ids = do
+--TODO: atirni Let [Decl String] ...-ra
+-- lehet, hogy kelleni fog names->binds konverzio
 	let (lhss, rhss) = unzip l
 	let (ids1, ids2, ids3) = split3 ids
 
@@ -65,18 +108,64 @@ rename b (Let l e) ids = do
 
 	let b'' = union b' b		-- itt fedjük el a felsőbb neveket
 
-	(rhss_names, rhss') <- renames b'' rhss ids2
-	(e_names, e') <- rename b'' e ids3
+	(rhss_names, rhss') <- renameExprs b'' rhss ids2
+	(e_names, e') <- renameExpr b'' e ids3
 
-	return (unions [lhss_names, rhss_names, e_names], Let (zip lhss' rhss') e')
+	return (I.unions [lhss_names, rhss_names, e_names], Let (zip lhss' rhss') e')
 
-renames :: Binds -> [Expr String] -> Ids -> Maybe' (Names, [Expr Int])
-renames b exprs ids = fmap (mapFst unions . unzip) $ sequence [rename b e i | (e,i)<- zip exprs (split ids)]
+renameExprs :: Binds -> [Expr String] -> Ids -> Maybe' (Names, [Expr Int])
+renameExprs b exprs ids = fmap (mapFst I.unions . unzip) $ sequence [renameExpr b e i | (e,i)<- zip exprs (split ids)]
+
+renameDecl  :: Binds ->  Decl String  -> Ids -> Maybe' (Names,  Decl Int )
+renameDecl b (FunBind fas) ids = do
+  let (ids1, ids2) = split2 ids
+
+  let fs = map (\x@(x1, x2, x3) -> x1) fas 
+  (b', f_names, ufs') <- distributeIds (nub fs) ids1
+
+  let b'' = union b' b
+  
+  (names, funalts) <- renameFunAlts b'' fas ids2
+
+  return (I.union f_names names, FunBind funalts)
+
+renameDecl b (PatBind p e) ids = do
+  let (ids1, ids2) = split2 ids
+  let p' = supplyValue ids1
+  let b' = insert p p' b
+
+  (e_names, e') <- renameExpr b' e ids2
+
+  return (I.insert p' p e_names, PatBind p' e')
+
+  
+      
+renameFunAlt :: Binds -> FunAlt String -> Ids -> Maybe' (Names, FunAlt Int)
+renameFunAlt b (f, as, e) ids = do --elofeltetel: f mar at van nevezve, es b-ben van errol az info
+  let (ids1, ids2) = split2 ids
+
+  f' <- case lookup f b of
+          Just i  -> return i
+          Nothing -> fail $ "This shouldn't happen " ++ f
+
+  (b', as_names, as') <- distributeIds as ids1
+
+  let b'' = union b' b
+
+  (e_names, e') <- renameExpr b'' e ids2
+
+  return (I.union as_names e_names, (f', as', e'))
+
+renameFunAlts :: Binds -> [FunAlt String] -> Ids -> Maybe' (Names, [FunAlt Int])
+renameFunAlts b funalts ids = fmap (mapFst I.unions . unzip) $ sequence [renameFunAlt b f i | (f,i) <- zip funalts (split ids)]
+  
+renameDecls :: Binds -> [Decl String] -> Ids -> Maybe' (Names, [Decl Int])
+renameDecls b decls ids = fmap (mapFst I.unions . unzip) $ sequence [renameDecl b d i | (d,i) <- zip decls (split ids)]
 
 distributeIds :: [String] -> Ids -> Maybe' (Binds, Names, [Int])
 distributeIds l ids = case duplicates l of
 	(x:_) -> fail $ "multiply defined: " ++ x
-	_	-> return (fromList $ zip l i, fromList $ zip i l, i)
+	_	-> return (fromList $ zip l i, I.fromList $ zip i l, i)
  where
 	i = take (length l) $ map supplyValue $ split ids
 
@@ -86,15 +175,19 @@ distributeIds l ids = case duplicates l of
 invRename :: Names -> Expr Int -> Expr String
 invRename names expr = f expr  where
 
-	f (Let l e) = Let [(names ! a, f b) | (a,b)<-l] (f e)
+	f (Let l e) = Let [(names I.! a, f b) | (a,b)<-l] (f e)
 	f (Apply l) = Apply (map f l)
-	f (Var v) = Var (names ! v)
+	f (Var v) = Var (names I.! v)
 	f (Lit s) = Lit s
 
 -------------------------------------------------
 
 renameMain :: Expr String -> Ids -> Maybe' (Names, Expr Int)
-renameMain expr ids = rename empty expr ids
+renameMain expr ids = renameExpr empty expr ids
+
+rename :: Module' String -> Ids -> Maybe' (Names, Module' Int)
+rename decls ids = renameDecls empty decls ids
+  
 
 main = mapM_ test tests
 
