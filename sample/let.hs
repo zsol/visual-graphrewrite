@@ -1,0 +1,1 @@
+f = let {a=2; b=a} in b

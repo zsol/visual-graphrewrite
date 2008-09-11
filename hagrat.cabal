@@ -1,0 +1,12 @@
+name: HaGraT
+version: 0.0.1
+cabal-version: >=1.2
+build-type: Simple
+license: BSD3
+license-file: LICENSE
+copyright: (c) 2007, Zsolt Dollenstein
+author: Zsolt Dollenstein
+stability: alpha
+--homepage: not yet :-)
+--package-url: depends on homepage
+synopsis: Graph transformation system representation
