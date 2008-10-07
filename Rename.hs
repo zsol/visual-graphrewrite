@@ -1,5 +1,3 @@
-
-{-# LANGUAGE FlexibleInstances #-}
 {- |
   This module contains functions for transforming a 'Language.Haskell.Parser.ParseResult' to our own representation of a Haskell module.
 -}
@@ -8,7 +6,7 @@ where
 
 import SimpleHaskell
 
-import Data.Supply	-- egyedi azonosítók szétosztásához;  value-supply csomagban
+import Data.Supply
 
 import Language.Haskell.Syntax
 import Language.Haskell.Parser
@@ -36,32 +34,37 @@ type Names = I.IntMap String
 type Ids   = Supply Int
 
 -- hibaüzenet vagy érték
-type Maybe' a = Either String a
-{-
-data Maybe' a
+--type Result a = Either String a
+
+data Result a
     = Hiba String
     | Ok a
--}
+      deriving (Show, Eq)
 
---instance Monad Maybe' where 
-instance Monad (Either String) where
+
+--instance Monad Result where 
+instance Monad (Result) where
 
 	a >>= b = case a of
-		Left err	-> fail err
-		Right x		-> b x
+		Hiba err	-> fail err
+		Ok x		-> b x
 
-	fail a = Left a
+	fail a = Hiba a
 
-	return a = Right a
+	return a = Ok a
 
-instance MonadFix (Either String) where
+instance MonadFix (Result) where
 
     mfix f = m   where
 
         m = f (kiszed m)
 
-        kiszed (Right a) = a
+        kiszed (Ok a) = a
 
+instance Functor Result where
+    
+    fmap f (Ok a) = Ok (f a)
+    fmap f (Hiba err) = Hiba err
 ------------------------------------------------
 swap :: (a, b) -> (b, a)
 swap = \(x,y) -> (y,x)
@@ -72,7 +75,7 @@ swap = \(x,y) -> (y,x)
 distributeIds 
     :: [String]     -- ^ String identifiers
     -> Ids          -- ^ Unique Ints
-    -> Maybe' (Binds, Names, [Int]) 
+    -> Result (Binds, Names, [Int]) 
                     -- ^ Error if there were at least two duplicate strings, otherwise returns the newly created assignments (String -> Int and Int -> String) and the list of assigned Ints.
 distributeIds l ids = case duplicates l of
 	(x:_) -> fail $ "multiply defined: " ++ x
@@ -122,7 +125,7 @@ renameExpr
     :: Binds        -- ^ Already assigned Strings
     -> Expr String  -- ^ The expression
     -> Ids          -- ^ An endless supply of unique Ints
-    -> Maybe' (Names, Expr Int) -- ^ If substitution is successful, returns the new assignments and the converted expression; otherwise returns an error.
+    -> Result (Names, Expr Int) -- ^ If substitution is successful, returns the new assignments and the converted expression; otherwise returns an error.
 renameExpr b (Lit s) ids = return (I.empty, Lit s)
 renameExpr b (Var v) ids = case lookup v b of
 	Nothing		-> fail $ "not defined: " ++ v
@@ -139,7 +142,7 @@ renameExpr b (Let l e) ids = do
   return (I.unions [l_names,  e_names], Let l' e')
 
 -- | This is 'renameExpr' for lists. It applies 'renameExpr' for every 'Expr' in the second parameter.
-renameExprs :: Binds -> [Expr String] -> Ids -> Maybe' (Names, [Expr Int])
+renameExprs :: Binds -> [Expr String] -> Ids -> Result (Names, [Expr Int])
 renameExprs b exprs ids = fmap (mapFst I.unions . unzip) $ sequence [renameExpr b e i | (e,i)<- zip exprs (split ids)]
 
 -- | Substitutes String identifiers to Int ones in a 'Decl' structure.
@@ -147,7 +150,7 @@ renameDecl
     :: Binds  -- ^ Already assigned Strings (including function names on the same level)
     -> Decl String  -- ^ The declaration
     -> Ids  -- ^ An endless supply of unique Ints
-    -> Maybe' (String, Names, Decl Int )        -- ^ If substitution is successful, returns the name of the 'Decl', the new assignments (this does not include the name of the 'Decl') and the converted declaration; otherwise returns an error.
+    -> Result (String, Names, Decl Int )        -- ^ If substitution is successful, returns the name of the 'Decl', the new assignments (this does not include the name of the 'Decl') and the converted declaration; otherwise returns an error.
 
 renameDecl b (FunBind fas@((n,_,_):_)) ids = do
 
@@ -164,7 +167,7 @@ renameDecl b (PatBind p e) ids = do
 
 -- | This is 'renameDecl' for lists. It applies 'renameDecl' to every 'Decl' in the second parameter, properly handling the names of the declarations.
 renameDecls :: Binds -> [Decl String] -> Ids 
-    -> Maybe' (Binds, Names, [Decl Int])     -- ^ If substitution is successful, returns all of the bindings, the new assignments and the list of converted declarations; otherwise returns an error.
+    -> Result (Binds, Names, [Decl Int])     -- ^ If substitution is successful, returns all of the bindings, the new assignments and the list of converted declarations; otherwise returns an error.
 renameDecls b decls ids  = do
 
     let (ids1, ids2) = split2 ids
@@ -182,11 +185,13 @@ renameDecls b decls ids  = do
   
     return (b', I.unions (as_:bs), cs)
 
+-- | This function gets the name of a declaration. This is the thing's name that we declare.
+name :: Decl a -> a
 name (PatBind p _) = p
 name (FunBind ((x,_,_):_)) = x
   
 -- | Does the substitution in function alternatives.      
-renameFunAlt :: Binds -> FunAlt String -> Ids -> Maybe' (Names, FunAlt Int)
+renameFunAlt :: Binds -> FunAlt String -> Ids -> Result (Names, FunAlt Int)
 renameFunAlt b (f, as, e) ids = do --elofeltetel: f mar at van nevezve, es b-ben van errol az info
   let (ids1, ids2) = split2 ids
 
@@ -203,39 +208,14 @@ renameFunAlt b (f, as, e) ids = do --elofeltetel: f mar at van nevezve, es b-ben
   return (I.union as_names e_names, (f', as', e'))
 
 -- | This is 'renameFunAlt' for lists. It applies 'renameFunAlt' for every 'FunAlt' in the second parameter.
-renameFunAlts :: Binds -> [FunAlt String] -> Ids -> Maybe' (Names, [FunAlt Int])
+renameFunAlts :: Binds -> [FunAlt String] -> Ids -> Result (Names, [FunAlt Int])
 renameFunAlts b funalts ids = fmap (mapFst I.unions . unzip) $ sequence [renameFunAlt b f i | (f,i) <- zip funalts (split ids)]
 
 -------------------------------------------------
 
-renameMain :: Expr String -> Ids -> Maybe' (Names, Expr Int)
-renameMain expr ids = renameExpr empty expr ids
-
 -- | Does the substitution in a 'SimpModule' structure.
 rename :: SimpModule String -- ^ The module which needs substitution
          -> Ids --  ^ An endless supply of Ints
-         -> Maybe' (Names, SimpModule Int) -- ^ If the substitution is successful, returns the assignments for the global identifiers and the converted 'SimpModule'; otherwise returns an error.
+         -> Result (Names, SimpModule Int) -- ^ If the substitution is successful, returns the assignments for the global identifiers and the converted 'SimpModule'; otherwise returns an error.
 rename decls ids = fmap g $ renameDecls empty decls ids
   where g (a,b,c) = (b,c) 
-
---main = mapM_ test tests
-{-
-test (Test x z) = do
-	putStrLn "------------------------------- Test"
-	print x
-	putStrLn "  ==> "
-	ids <- newEnumSupply
-	case renameMain x ids of
-		Left err	->	case z of
-				Just err' | err == err' 	-> putStrLn $ "Expected error: " ++ err
-				_ 	-> putStrLn $ "!Unexpected error: " ++ err
-		Right (names, y)	-> case z of
-			Nothing	-> do
-				print y
---				putStrLn $ "invRename test: " ++ if invRename names y == x then "OK" else "FAILED!"
-			Just err	-> do
-				putStrLn $ "!Expected error " ++ err ++ " but got"
-				print y
-
-data Test = Test (Expr String) (Maybe String)
--}
