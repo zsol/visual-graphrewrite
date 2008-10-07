@@ -10,6 +10,8 @@ main :: IO ()
 main = do
   fname <- getArgs
   tmp <- readFile (head fname)
+  pprint $ parseModule tmp
+  pprint $ convParse $ parseModule tmp
   ids <- newEnumSupply
   pprint $ rename (convParse $ parseModule tmp) ids
 

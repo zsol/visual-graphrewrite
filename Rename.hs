@@ -1,47 +1,49 @@
 
 {-# LANGUAGE FlexibleInstances #-}
-module Rename 
+{- |
+  This module contains functions for transforming a 'Language.Haskell.Parser.ParseResult' to our own representation of a Haskell module.
+-}
+module Rename
 where
 
+import SimpleHaskell
+
 import Data.Supply	-- egyedi azonosítók szétosztásához;  value-supply csomagban
-
-import Data.Map hiding (map, split)
-
-import Data.Maybe
-import Data.List hiding (lookup, union, insert)
-import Prelude hiding (lookup)
-
-import qualified Data.IntMap as I
-import qualified Data.List (lookup)
 
 import Language.Haskell.Syntax
 import Language.Haskell.Parser
 
+import Control.Monad.Fix
+
+import Data.Map hiding (map, split)
+import qualified Data.IntMap as I
+
+import Data.List hiding (lookup, union, insert)
+import qualified Data.List as List -- (lookup)
+import Data.Maybe
+
+import Prelude hiding (lookup)
+
 -------------------------------------------------
 
-type Module' a = [Decl a]
-
-data Decl a
-    = FunBind [FunAlt a]
-    | PatBind a (Expr a)
-      deriving (Show, Eq)
-
-type FunAlt a = (a, [a], (Expr a))
-
-data Expr a 
-	= Let [Decl a] (Expr a)
-	| Var a
-	| Apply [Expr a]
-	| Lit String
-		deriving (Show, Eq)
-
+-- | Maps String identifiers to Integer identifiers.
 type Binds = Map String Int
+
+-- | Inverse mapping of 'Binds'
 type Names = I.IntMap String
+
+-- | An endless supply of Ints
 type Ids   = Supply Int
 
 -- hibaüzenet vagy érték
 type Maybe' a = Either String a
+{-
+data Maybe' a
+    = Hiba String
+    | Ok a
+-}
 
+--instance Monad Maybe' where 
 instance Monad (Either String) where
 
 	a >>= b = case a of
@@ -52,17 +54,26 @@ instance Monad (Either String) where
 
 	return a = Right a
 
+instance MonadFix (Either String) where
+
+    mfix f = m   where
+
+        m = f (kiszed m)
+
+        kiszed (Right a) = a
+
 ------------------------------------------------
 swap :: (a, b) -> (b, a)
 swap = \(x,y) -> (y,x)
 
-namesToBinds :: Names -> Binds
-namesToBinds = fromList . (map swap) . I.toList
 
-bindsToNames :: Binds -> Names
-bindsToNames = I.fromList . (map swap) . toList
 
-distributeIds :: [String] -> Ids -> Maybe' (Binds, Names, [Int])
+-- | Assigns 'Int' identifiers to Strings. Each String gets a unique Int.
+distributeIds 
+    :: [String]     -- ^ String identifiers
+    -> Ids          -- ^ Unique Ints
+    -> Maybe' (Binds, Names, [Int]) 
+                    -- ^ Error if there were at least two duplicate strings, otherwise returns the newly created assignments (String -> Int and Int -> String) and the list of assigned Ints.
 distributeIds l ids = case duplicates l of
 	(x:_) -> fail $ "multiply defined: " ++ x
 	_	-> return (fromList $ zip l i, I.fromList $ zip i l, i)
@@ -77,12 +88,12 @@ mapSnd f (a,b) = (a, f b)
 
 
 ------------------------------------------------
-
-convParse :: ParseResult HsModule -> Module' String
+-- | Converts a 'ParseResult' as returned by 'Language.Haskell.Parser' to our internal 'SimpModule' format. Returns an empty 'SimpModule' if the parse failed.
+convParse :: ParseResult HsModule -> SimpModule String
 convParse (ParseFailed _ _) = []
 convParse (ParseOk m)       = convModule m
 
-convModule :: HsModule -> Module' String
+convModule :: HsModule -> SimpModule String
 convModule (HsModule _ m exp imp decl) = map convDecl decl
 
 convDecl :: HsDecl -> Decl String
@@ -106,67 +117,75 @@ convExpr (HsLet decls exp)  = Let (map convDecl decls) (convExpr exp)
 
 -------------------------------------------------
 
--- a legfontosabb függvény
-renameExpr :: Binds -> Expr String -> Ids -> Maybe' (Names, Expr Int)
+-- | Substitutes String identifiers to Int ones in an 'Expr' structure.
+renameExpr 
+    :: Binds        -- ^ Already assigned Strings
+    -> Expr String  -- ^ The expression
+    -> Ids          -- ^ An endless supply of unique Ints
+    -> Maybe' (Names, Expr Int) -- ^ If substitution is successful, returns the new assignments and the converted expression; otherwise returns an error.
 renameExpr b (Lit s) ids = return (I.empty, Lit s)
 renameExpr b (Var v) ids = case lookup v b of
 	Nothing		-> fail $ "not defined: " ++ v
 	Just i		-> return (I.empty, Var i)
 renameExpr b (Apply l) ids = fmap (mapSnd Apply) $ renameExprs b l ids
 renameExpr b (Let l e) ids = do
+
   let (ids1, ids2) = split2 ids
 
-  (l_names, l') <- renameDecls' b l ids1
+  (b', l_names, l') <- renameDecls b l ids1
 
-  let b' = namesToBinds l_names
-  let b'' = union b' b
-
-  (e_names, e') <- renameExpr b'' e ids2
+  (e_names, e') <- renameExpr b' e ids2
   
   return (I.unions [l_names,  e_names], Let l' e')
 
+-- | This is 'renameExpr' for lists. It applies 'renameExpr' for every 'Expr' in the second parameter.
 renameExprs :: Binds -> [Expr String] -> Ids -> Maybe' (Names, [Expr Int])
 renameExprs b exprs ids = fmap (mapFst I.unions . unzip) $ sequence [renameExpr b e i | (e,i)<- zip exprs (split ids)]
 
---Ugyanaz, mint fent, csak a sorrend szamit
-renameExprs' :: Binds -> [Expr String] -> Ids -> Maybe' (Names, [Expr Int])
-renameExprs' b (eh:es) ids = do
-  let (ids1, ids2) = split2 ids
+-- | Substitutes String identifiers to Int ones in a 'Decl' structure.
+renameDecl  
+    :: Binds  -- ^ Already assigned Strings (including function names on the same level)
+    -> Decl String  -- ^ The declaration
+    -> Ids  -- ^ An endless supply of unique Ints
+    -> Maybe' (String, Names, Decl Int )        -- ^ If substitution is successful, returns the name of the 'Decl', the new assignments (this does not include the name of the 'Decl') and the converted declaration; otherwise returns an error.
 
-  (eh_names, eh') <- renameExpr b eh ids1
+renameDecl b (FunBind fas@((n,_,_):_)) ids = do
 
-  let b' = union (namesToBinds eh_names) b
+  (names, funalts) <- renameFunAlts b fas ids
 
-  (es_names, es') <- renameExprs' b' es ids2
-
-  return (I.union eh_names es_names, (eh':es'))
-
-renameExprs' _ [] _ = Right (I.empty, [])
-
-renameDecl  :: Binds ->  Decl String  -> Ids -> Maybe' (Names,  Decl Int )
-renameDecl b (FunBind fas) ids = do
-  let (ids1, ids2) = split2 ids
-
-  let fs = map (\x@(x1, x2, x3) -> x1) fas 
-  (b', f_names, ufs') <- distributeIds (nub fs) ids1
-
-  let b'' = union b' b
-  
-  (names, funalts) <- renameFunAlts' b'' fas ids2
-
-  return (I.union f_names names, FunBind funalts)
+  return (n, names, FunBind funalts)
 
 renameDecl b (PatBind p e) ids = do
-  let (ids1, ids2) = split2 ids
-  let p' = supplyValue ids1
-  let b' = insert p p' b
 
-  (e_names, e') <- renameExpr b' e ids2
+  (e_names, e') <- renameExpr b e ids
 
-  return (I.insert p' p e_names, PatBind p' e')
+  return (p, e_names, PatBind (b ! p) e')
+
+
+-- | This is 'renameDecl' for lists. It applies 'renameDecl' to every 'Decl' in the second parameter, properly handling the names of the declarations.
+renameDecls :: Binds -> [Decl String] -> Ids 
+    -> Maybe' (Binds, Names, [Decl Int])     -- ^ If substitution is successful, returns all of the bindings, the new assignments and the list of converted declarations; otherwise returns an error.
+renameDecls b decls ids  = do
+
+    let (ids1, ids2) = split2 ids
+
+    let as = map name decls
+
+    (b_, as_, _) <- distributeIds as ids2
+
+    let b' = union b_ b
+
+    (_as, bs, cs) <- fmap unzip3 $ sequence [renameDecl b' d i | (d,i) <- zip decls (split ids1)]
+
+
 
   
-      
+    return (b', I.unions (as_:bs), cs)
+
+name (PatBind p _) = p
+name (FunBind ((x,_,_):_)) = x
+  
+-- | Does the substitution in function alternatives.      
 renameFunAlt :: Binds -> FunAlt String -> Ids -> Maybe' (Names, FunAlt Int)
 renameFunAlt b (f, as, e) ids = do --elofeltetel: f mar at van nevezve, es b-ben van errol az info
   let (ids1, ids2) = split2 ids
@@ -183,62 +202,24 @@ renameFunAlt b (f, as, e) ids = do --elofeltetel: f mar at van nevezve, es b-ben
 
   return (I.union as_names e_names, (f', as', e'))
 
+-- | This is 'renameFunAlt' for lists. It applies 'renameFunAlt' for every 'FunAlt' in the second parameter.
 renameFunAlts :: Binds -> [FunAlt String] -> Ids -> Maybe' (Names, [FunAlt Int])
 renameFunAlts b funalts ids = fmap (mapFst I.unions . unzip) $ sequence [renameFunAlt b f i | (f,i) <- zip funalts (split ids)]
 
---Mint az elozo, csak a sorrend szamit
-renameFunAlts' :: Binds -> [FunAlt String] -> Ids -> Maybe' (Names, [FunAlt Int])
-renameFunAlts' b (fh:fs) ids = do
-  let (ids1, ids2) = split2 ids
-                     
-  (fh_names, fh') <- renameFunAlt b fh ids1
-
-  let b' = union (namesToBinds fh_names) b
-
-  (fs_names, fs') <- renameFunAlts' b' fs ids2
-
-  return (I.union fh_names fs_names, (fh':fs'))
-
-renameFunAlts' _ [] _ = Right (I.empty, [])
-  
-renameDecls :: Binds -> [Decl String] -> Ids -> Maybe' (Names, [Decl Int])
-renameDecls b decls ids = fmap (mapFst I.unions . unzip) $ sequence [renameDecl b d i | (d,i) <- zip decls (split ids)]
-
-renameDecls' :: Binds -> [Decl String] -> Ids -> Maybe' (Names, [Decl Int])
-renameDecls' b (dh:ds) ids = do
-  let (ids1, ids2) = split2 ids
-
-  (dh_names, dh') <- renameDecl b dh ids1
-
-  let b' = union (namesToBinds dh_names) b
-
-  (ds_names, ds') <- renameDecls' b' ds ids2
-
-  return (I.union dh_names ds_names, (dh':ds'))
-
-renameDecls' _ [] _ = Right (I.empty, [])
-
--------------------------------------------------
-{-
-invRename :: Names -> Expr Int -> Expr String
-invRename names expr = f expr  where
-
-	f (Let l e) = Let [(names I.! a, f b) | (a,b)<-l] (f e)
-	f (Apply l) = Apply (map f l)
-	f (Var v) = Var (names I.! v)
-	f (Lit s) = Lit s
--}
 -------------------------------------------------
 
 renameMain :: Expr String -> Ids -> Maybe' (Names, Expr Int)
 renameMain expr ids = renameExpr empty expr ids
 
-rename :: Module' String -> Ids -> Maybe' (Names, Module' Int)
-rename decls ids = renameDecls' empty decls ids
-  
+-- | Does the substitution in a 'SimpModule' structure.
+rename :: SimpModule String -- ^ The module which needs substitution
+         -> Ids --  ^ An endless supply of Ints
+         -> Maybe' (Names, SimpModule Int) -- ^ If the substitution is successful, returns the assignments for the global identifiers and the converted 'SimpModule'; otherwise returns an error.
+rename decls ids = fmap g $ renameDecls empty decls ids
+  where g (a,b,c) = (b,c) 
 
 --main = mapM_ test tests
-
+{-
 test (Test x z) = do
 	putStrLn "------------------------------- Test"
 	print x
@@ -257,32 +238,4 @@ test (Test x z) = do
 				print y
 
 data Test = Test (Expr String) (Maybe String)
-{-
-tests =
-	[ Test
-		(Let
-			[ ("x", Lit "Hello")
-			, ("x", Lit "")
-			] (Lit ""))
-		(Just "multiply defined: x")
-	, Test
-		(Let
-			[ ("x", Var "y")
-			, ("y", Lit "yy")
-			] (Var "x"))
-		Nothing
-	, Test
-		(Var "z")
-		(Just "not defined: z")
-	-- az elfedés tesztelésére
-	, Test
-		(Let
-			[ ("x", Lit "Hi")
-			] (Let
-				[ ("x", Lit "Ok")
-				] (Var "x")))
-		Nothing
-	]
 -}
-
-
