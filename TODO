@@ -1,0 +1,76 @@
+
+A)
+  type FunAlt a = (a, [a], Expr a) 
+        -->
+  type FunAlt a = (a, [Patt a], Expr a) 
+
+
+
+További teendők:
+
+I) Minden .hs modulra működjön
+
+- data: 
+
+data List a = Nil | Cons a (List a)
+
+
+ Id generálás
+    Nil   ->    1
+    Cons  ->    2
+{-
+ aritás:
+    Nil   -> 0
+    Cons  -> 2
+-}
+Ezek megjelennek a mintákban és a kifejezésekben.
+
+
+II) Transzformációk:
+
+
+Gráfátíró rendszer:
+
+- nincs case (mintaillesztés van helyette)
+- nincsenek lokális függvények, de vannak lokális konstansok (lifteléssel lehet elérni)
+- nincsenek őrfeltételek
+
+     f x y | x == y = 0
+     f x y = x
+
+
+     f' x y = f'' x y (x == y)
+
+     f'' x y True = 0
+     f'' x y _    = x
+
+
+Cél:
+
+erathosthenes.hs leforduljon,
+ - minták
+ - konstruktoroknak megfelelő id-k a mintákban
+
+definiálható: ++, /=, not
+
+    a /= b = not (a == b)
+
+beépített (delta) függvények:
+predefined:
+    "div"
+    "mod"
+    "succ"
+    "eqInt"
+
+Típusosztályok:
+    ==   ->   eqString, eqInt
+
+    a /= b = not (a == b)
+        ->
+    neq eq a b = not (eq a b)
+
+    ... (a /= b) ...  ->  ... (neq eqInt a b) ...
+
+
+
+
