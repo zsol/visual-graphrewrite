@@ -4,16 +4,27 @@ import IPPrint --pprint
 --import DataGraph
 import Language.Haskell.Syntax
 import Rename
+import Convert
 import Data.Supply
+import Data.Map
+
+predef :: [String]
+predef = ["++", "div", "mod", "eqInt", "not", "Cons", "Nil", "succ", "True", "False"]
 
 main :: IO ()
 main = do
   fname <- getArgs
   tmp <- readFile (head fname)
-  pprint $ parseModule tmp
-  pprint $ convParse $ parseModule tmp
+  let mod = parseModule tmp
+  pprint $ mod
+  putStrLn "-------------------------------------------------------------------------"
+  pprint $ convParse $ mod
   ids <- newEnumSupply
-  pprint $ rename (convParse $ parseModule tmp) ids
+  let (ids1, ids2) = split2 ids
+  let (Ok (predefBinds,_,_)) = distributeIds predef ids2
+  case rename predefBinds (convParse $ parseModule tmp) ids1 of
+    Ok (n,m) -> pprint m >> pprint n
+    Hiba f   -> pprint$ "HIBA: " ++ f
 
 
 

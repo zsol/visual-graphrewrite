@@ -1,6 +1,6 @@
 
 name:                visual-graphrewrite
-version:             0.0
+version:             0.1
 synopsis:            Visualize the graph-rewrite steps of a Haskell program
 description:         Visualize the graph-rewrite steps of a Haskell program
 category:            Development
@@ -19,9 +19,10 @@ extra-source-files:  sample/egyszeru.hs,
 		     sample/simple.hs,
 		     sample/fsimple.hs
 		     sample/eratosthenes.hs
+		     TODO
 
 executable:          rewrite
 main-is:             Parser.hs
-other-modules:       Rename, SimpleHaskell
+other-modules:       Rename, SimpleHaskell, Convert
 ghc-options:         
 

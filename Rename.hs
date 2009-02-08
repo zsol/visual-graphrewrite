@@ -1,10 +1,12 @@
 {- |
-  This module contains functions for transforming a 'Language.Haskell.Parser.ParseResult' to our own representation of a Haskell module.
+  This module contains functions for assigning integer identifiers to lexical elements of
+  a Haskell source file. This process is called renaming.
 -}
 module Rename
 where
 
 import SimpleHaskell
+import Convert
 
 import Data.Supply
 
@@ -13,7 +15,7 @@ import Language.Haskell.Parser
 
 import Control.Monad.Fix
 
-import Data.Map hiding (map, split)
+import Data.Map hiding (map, split, filter)
 import qualified Data.IntMap as I
 
 import Data.List hiding (lookup, union, insert)
@@ -33,9 +35,7 @@ type Names = I.IntMap String
 -- | An endless supply of Ints
 type Ids   = Supply Int
 
--- hibaüzenet vagy érték
---type Result a = Either String a
-
+-- | Result monad; error spreads
 data Result a
     = Hiba String
     | Ok a
@@ -69,8 +69,6 @@ instance Functor Result where
 swap :: (a, b) -> (b, a)
 swap = \(x,y) -> (y,x)
 
-
-
 -- | Assigns 'Int' identifiers to Strings. Each String gets a unique Int.
 distributeIds 
     :: [String]     -- ^ String identifiers
@@ -78,47 +76,27 @@ distributeIds
     -> Result (Binds, Names, [Int]) 
                     -- ^ Error if there were at least two duplicate strings, otherwise returns the newly created assignments (String -> Int and Int -> String) and the list of assigned Ints.
 distributeIds l ids = case duplicates l of
-	(x:_) -> fail $ "multiply defined: " ++ x
-	_	-> return (fromList $ zip l i, I.fromList $ zip i l, i)
- where
-	i = take (length l) $ map supplyValue $ split ids
+	                (x:_) -> fail $ "multiple definition: " ++ x
+	                _     -> return (fromList $ zip l i, I.fromList $ zip i l, i)
+                            where
+	                      i = take (length l) $ map supplyValue $ split ids
 
+-- | Does the same thing as distributeIds, only for [[String]] lists
+distributeIds' :: [[String]] -> Ids -> Result (Binds, Names, [[Int]])
+distributeIds' (l:ls) ids = do
+  let (ids1, ids2) = split2 ids
+  (b, n, i) <- distributeIds l ids1
+  (b', n', i') <- distributeIds' ls ids2
+  return (union b b', I.union n n', i:i')
+
+distributeIds' [] _ = return (empty, I.empty, [[]])
+
+-- | Find the duplicates in the first argument
 duplicates :: Ord a => [a] -> [a]
 duplicates = catMaybes . map (listToMaybe . tail) . group . sort
 
 mapFst f (a,b) = (f a, b)
 mapSnd f (a,b) = (a, f b)
-
-
-------------------------------------------------
--- | Converts a 'ParseResult' as returned by 'Language.Haskell.Parser' to our internal 'SimpModule' format. Returns an empty 'SimpModule' if the parse failed.
-convParse :: ParseResult HsModule -> SimpModule String
-convParse (ParseFailed _ _) = []
-convParse (ParseOk m)       = convModule m
-
-convModule :: HsModule -> SimpModule String
-convModule (HsModule _ m exp imp decl) = map convDecl decl
-
-convDecl :: HsDecl -> Decl String
-convDecl (HsFunBind hsmatch) = FunBind (map convMatch hsmatch)
-convDecl (HsPatBind _ pat rhs decl) = PatBind (convPars pat) (convRhs rhs)
-
-convMatch :: HsMatch -> FunAlt String
-convMatch (HsMatch _ (HsIdent fname) pars expr _) = (fname, map convPars pars, convRhs expr)
-
-convPars :: HsPat -> String --FIXME
-convPars (HsPVar (HsIdent n)) = n
-
-convRhs :: HsRhs -> Expr String
-convRhs (HsUnGuardedRhs expr) = convExpr expr
-
-convExpr :: HsExp -> Expr String
-convExpr (HsVar (UnQual (HsIdent var))) = Var var
-convExpr (HsApp exp1 exp2)  = Apply [convExpr exp1, convExpr exp2]
-convExpr (HsLit literal)    = Lit (show literal)
-convExpr (HsLet decls exp)  = Let (map convDecl decls) (convExpr exp)
-
--------------------------------------------------
 
 -- | Substitutes String identifiers to Int ones in an 'Expr' structure.
 renameExpr 
@@ -131,6 +109,9 @@ renameExpr b (Var v) ids = case lookup v b of
 	Nothing		-> fail $ "not defined: " ++ v
 	Just i		-> return (I.empty, Var i)
 renameExpr b (Apply l) ids = fmap (mapSnd Apply) $ renameExprs b l ids
+renameExpr b (Cons c) ids = case lookup c b of
+                              Nothing -> fail $ "not defined: " ++ c
+                              Just i  -> return (I.empty, Cons i)
 renameExpr b (Let l e) ids = do
 
   let (ids1, ids2) = split2 ids
@@ -162,7 +143,9 @@ renameDecl b (PatBind p e) ids = do
 
   (e_names, e') <- renameExpr b e ids
 
-  return (p, e_names, PatBind (b ! p) e')
+  return (head $ nameExpr p, e_names, PatBind (joinPatts (p, [(b ! (head $ nameExpr p))])) e')
+
+renameDecl b (DataDecl a) ids = Ok (a, I.empty, DataDecl (-1))
 
 
 -- | This is 'renameDecl' for lists. It applies 'renameDecl' to every 'Decl' in the second parameter, properly handling the names of the declarations.
@@ -179,16 +162,29 @@ renameDecls b decls ids  = do
     let b' = union b_ b
 
     (_as, bs, cs) <- fmap unzip3 $ sequence [renameDecl b' d i | (d,i) <- zip decls (split ids1)]
-
-
-
   
     return (b', I.unions (as_:bs), cs)
 
--- | This function gets the name of a declaration. This is the thing's name that we declare.
-name :: Decl a -> a
-name (PatBind p _) = p
-name (FunBind ((x,_,_):_)) = x
+--name :: (Read a) => Decl a -> a
+--name (PatBind n  _) = head $nameExpr n
+--name (FunBind ((x,_,_):_)) = x
+--name (DataDecl a) = a
+
+--nameExpr :: (Read a) => Expr a -> [a]
+--nameExpr (Var n) = [n]
+--nameExpr (Cons n) = [n]
+--nameExpr (Lit n) = [read n]
+--nameExpr (Apply es) = concat $ map nameExpr es
+
+-- | Substitutes the String identifiers in a pattern with the supplied integer(s).
+joinPatts :: (Patt String, [Int]) -> Patt Int
+joinPatts (Var _, [i]) = Var i
+joinPatts (Cons _, [i]) = Cons i
+joinPatts (Lit s, _) = Lit s
+joinPatts (Apply s, i) = Apply (map joinPatts (zip s i'))
+    where
+      i' = map (\x -> [x]) i
+                         
   
 -- | Does the substitution in function alternatives.      
 renameFunAlt :: Binds -> FunAlt String -> Ids -> Result (Names, FunAlt Int)
@@ -199,13 +195,18 @@ renameFunAlt b (f, as, e) ids = do --elofeltetel: f mar at van nevezve, es b-ben
           Just i  -> return i
           Nothing -> fail $ "This shouldn't happen " ++ f
 
-  (b', as_names, as') <- distributeIds as ids1
+  let as' = filter cons as 
+
+  (b', as_names, as'') <- distributeIds' (map nameExpr as') ids1
 
   let b'' = union b' b
 
   (e_names, e') <- renameExpr b'' e ids2
 
-  return (I.union as_names e_names, (f', as', e'))
+  return (I.union as_names e_names, (f', (map joinPatts (zip as' as'')), e'))
+    where
+      cons (Cons _) = False
+      cons _ = True
 
 -- | This is 'renameFunAlt' for lists. It applies 'renameFunAlt' for every 'FunAlt' in the second parameter.
 renameFunAlts :: Binds -> [FunAlt String] -> Ids -> Result (Names, [FunAlt Int])
@@ -214,8 +215,9 @@ renameFunAlts b funalts ids = fmap (mapFst I.unions . unzip) $ sequence [renameF
 -------------------------------------------------
 
 -- | Does the substitution in a 'SimpModule' structure.
-rename :: SimpModule String -- ^ The module which needs substitution
-         -> Ids --  ^ An endless supply of Ints
-         -> Result (Names, SimpModule Int) -- ^ If the substitution is successful, returns the assignments for the global identifiers and the converted 'SimpModule'; otherwise returns an error.
-rename decls ids = fmap g $ renameDecls empty decls ids
+rename :: Binds -- ^ Predefined entities
+       -> SimpModule String -- ^ The module which needs substitution
+       -> Ids --  ^ An endless supply of Ints
+       -> Result (Names, SimpModule Int) -- ^ If the substitution is successful, returns the assignments for the global identifiers and the converted 'SimpModule'; otherwise returns an error.
+rename predef decls ids = fmap g $ renameDecls predef decls ids
   where g (a,b,c) = (b,c) 

@@ -36,13 +36,17 @@ Gráfátíró rendszer:
 - nincsenek őrfeltételek
 
      f x y | x == y = 0
+     f x y | x < y = -1
      f x y = x
 
 
-     f' x y = f'' x y (x == y)
+     f1 x y = f2 x y (x == y)
 
-     f'' x y True = 0
-     f'' x y _    = x
+     f2 x y True = 0
+     f2 x y _    = f3 x y (x < y)
+
+     f3 x y True = -1
+     f3 x y _    = x
 
 
 Cél:

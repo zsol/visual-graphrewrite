@@ -1,5 +1,8 @@
 data List a = Nil | Cons a (List a)
 
+not True  = False
+not False = True
+
 showInt 0 = "0"
 showInt 1 = "1"
 showInt 2 = "2"
@@ -10,16 +13,16 @@ showInt 6 = "6"
 showInt 7 = "7"
 showInt 8 = "8"
 showInt 9 = "9"
-showInt n = showInt (div n 10) ++ showInt (mod n 10)
+showInt n = (++) (showInt (div n 10)) (showInt (mod n 10))
 
 showIntList Nil = ""
-showIntList (Cons h t) = showInt h ++ ", " ++ showIntList t
+showIntList (Cons h t) = (++) (showInt h) ((++) ", " (showIntList t))
 
 --primesbelow :: Int -> String
 --primesbelow n = showIntList (eratos (enumFT 2 n))
 
 --f :: Int -> Int -> Bool
-f h x = mod x h /= 0
+f h x = not (eqInt (mod x h) 0)
 
 --eratos :: [Int] -> [Int]
 eratos (Cons h t) = Cons h (fil (f h) (eratos t))
@@ -31,7 +34,7 @@ eratos Nil = Nil
 --    | otherwise = Cons f (enumFT ((+) f 1) t)
 
 --enumF :: Int -> [Int]
-enumF f = Cons f (enumF ((+) f 1))
+enumF f = Cons f (enumF (succ f))
 
 --result :: String
 result = showIntList primes
@@ -41,7 +44,7 @@ primes = eratos (enumF 2)
 
 --fil :: (a -> Bool) -> [a] -> [a]
 fil v Nil = Nil                       -- @ (@ fil v) Nil
-fil p@_ x@(Cons h@_ t@_) = fil' p x (p h)
+fil p (Cons h t) = fil' p (Cons h t) (p h)
 
 {-
 type Graph = (Int, IntMap X)
