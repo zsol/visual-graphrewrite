@@ -33,8 +33,8 @@ convModule (HsModule _ m exp imp decl) = map convDecl (snd $ splitDecls decl)
 convDecl :: HsDecl -> Decl String
 convDecl (HsFunBind hsmatch) = FunBind (map convMatch hsmatch)
 convDecl (HsPatBind _ pat rhs decl) = PatBind (convPars pat) (convRhs rhs)
-convDecl (HsDataDecl _ _ (HsIdent a) _ _ _) = DataDecl a
-convDecl (HsDataDecl _ _ (HsSymbol a) _ _ _) = DataDecl a
+--convDecl (HsDataDecl _ _ (HsIdent a) _ _ _) = DataDecl a
+--convDecl (HsDataDecl _ _ (HsSymbol a) _ _ _) = DataDecl a
 
 convMatch :: HsMatch -> FunAlt String
 convMatch (HsMatch _ (HsIdent fname) pars expr _) = (fname, map convPars pars, convRhs expr)

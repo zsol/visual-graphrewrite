@@ -5,7 +5,7 @@ result = showIntList primes
 
 not True  = False
 not False = True
-{-
+
 showInt 0 = "0"
 showInt 1 = "1"
 showInt 2 = "2"
@@ -20,7 +20,7 @@ showInt n = (++) (showInt (div n 10)) (showInt (mod n 10))
 
 showIntList Nil = ""
 showIntList (Cons h t) = (++) (showInt h) ((++) ", " (showIntList t))
--}
+
 --primesbelow :: Int -> String
 --primesbelow n = showIntList (eratos (enumFT 2 n))
 

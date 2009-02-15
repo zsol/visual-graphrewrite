@@ -147,7 +147,7 @@ renameDecl b (PatBind p e) ids = do
 
   return (head $ nameExpr p, e_names, PatBind (joinPatts (p, [(b ! (head $ nameExpr p))])) e')
 
-renameDecl b (DataDecl a) ids = Ok (a, I.empty, DataDecl (-1))
+--renameDecl b (DataDecl a) ids = Ok (a, I.empty, DataDecl (-1))
 
 
 -- | This is 'renameDecl' for lists. It applies 'renameDecl' to every 'Decl' in the second parameter, properly handling the names of the declarations.
@@ -197,18 +197,23 @@ renameFunAlt b (f, as, e) ids = do --elofeltetel: f mar at van nevezve, es b-ben
           Just i  -> return i
           Nothing -> fail $ "This shouldn't happen " ++ f
 
-  let as' = filter cons as 
+  let as' = removeCons as --don't want to reassign ids to constructors, duh
 
-  (b', as_names, as'') <- distributeIds' (map nameExpr as') ids1
+  (b', as_names, _) <- distributeIds' (map nameExpr as') ids1
 
   let b'' = union b' b
 
+  tmp <- sequence $ fmap (\x -> renameExpr b'' x ids1) as --EVIL! using ids1 twice but this call of renameExpr shouldn't really use it
+  let (_, as'') = unzip tmp --we already have as_names from above, thank you.
+
   (e_names, e') <- renameExpr b'' e ids2
 
-  return (I.union as_names e_names, (f', (map joinPatts (zip as' as'')), e'))
+  return (I.union as_names e_names, (f', as'', e'))
     where
-      cons (Cons _) = False
-      cons _ = True
+      removeCons [] = []
+      removeCons ((Cons _):t) = removeCons t
+      removeCons ((Apply h):t) = (Apply (removeCons h)):(removeCons t)
+      removeCons (h:t) = h:(removeCons t)
 
 -- | This is 'renameFunAlt' for lists. It applies 'renameFunAlt' for every 'FunAlt' in the second parameter.
 renameFunAlts :: Binds -> [FunAlt String] -> UniqueIds -> Result (Names, [FunAlt Int])
@@ -223,3 +228,55 @@ rename :: Binds -- ^ Predefined entities
        -> Result (Names, SimpModule Int) -- ^ If the substitution is successful, returns the assignments for the global identifiers and the converted 'SimpModule'; otherwise returns an error.
 rename predef decls ids = fmap g $ renameDecls predef decls ids
   where g (a,b,c) = (b,c) 
+
+rename' :: Binds -> SimpModule String -> UniqueIds -> Result (Names, SimpModule Int)
+rename' predef decls ids = do
+  (n, m) <- fmap (\(x,y,z) -> (y,z)) $ renameDecls predef decls ids
+  return (I.union (I.fromList $ map (\(x,y) -> (y,x)) (toList predef)) n, m)
+
+-- | Resubstitutes String identifiers in place of Int ones. This is useful to check correctness of 'rename'.
+invRename :: Names -> SimpModule Int -> Result (SimpModule String)
+invRename names decls = sequence $ fmap (invRenameDecl names) decls
+
+invRenameDecl :: Names -> Decl Int -> Result (Decl String)
+invRenameDecl names (FunBind alts) =  do
+  alts' <- sequence (fmap (invRenameFunAlt names) alts)
+  return $ FunBind alts'
+
+invRenameDecl names (PatBind p e)  = do
+  p' <- (invRenameExpr names p)
+  e' <- (invRenameExpr names e)
+  return $ PatBind p' e'
+
+invRenameFunAlt :: Names -> FunAlt Int -> Result (FunAlt String)
+invRenameFunAlt names (f, ps, e) = do
+  f' <- case I.lookup f names of
+         Just s  -> return s
+         Nothing -> fail $ "No String identifier found for " ++ show f
+
+  ps' <- sequence $ fmap (invRenameExpr names) ps
+  e'  <- invRenameExpr names e
+
+  return (f', ps', e')
+
+invRenameExpr :: Names -> Expr Int -> Result (Expr String)
+invRenameExpr names (Let decls e) = do
+  decls' <- sequence $ fmap (invRenameDecl names) decls
+  e' <- invRenameExpr names e
+  return (Let decls' e')
+
+invRenameExpr names (Var v) = case I.lookup v names of
+                                Just s  -> return (Var s)
+                                Nothing -> fail $ "No String identifier found for " ++ show v
+
+invRenameExpr names (Cons c) = case I.lookup c names of
+                                 Just s  -> return (Cons s)
+                                 Nothing -> fail $ "No String identifier found for " ++ show c
+
+invRenameExpr names (Apply es) = do
+ es' <- sequence (fmap (invRenameExpr names) es)
+ return $ Apply es'
+
+invRenameExpr names (Lit s) = return (Lit s)
+                                      
+

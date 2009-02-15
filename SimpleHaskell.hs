@@ -32,7 +32,7 @@ where
   name :: Decl String -> String
   name (PatBind n  _) = head $nameExpr n
   name (FunBind ((x,_,_):_)) = x
-  name (DataDecl a) = a
+--  name (DataDecl a) = a
 
   -- | Gets the name of an expression.
   nameExpr :: Expr String -> [String]
