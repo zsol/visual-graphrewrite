@@ -1,10 +1,78 @@
 
-A)
-  type FunAlt a = (a, [a], Expr a) 
-        -->
-  type FunAlt a = (a, [Patt a], Expr a) 
+* addNames :: Names -> SimpModule Int -> SimpModule String
+* ellenőrizni hogy rename jól működik-e (addNames . rename === id)
+
+* makeRewriteRules :: SimpleModule Int -> RewriteSystem
+
+* type Graph = (RewriteTypes.Expr, IntMap Expr)
+
+* rewriteHNF :: RewriteSystem -> Graph -> Graph
+
+    rewriteHNF feladata:
+      fej normál formára hozni a kifejezést
+
+    működése:
+      rewriteHNF (e, g) = case deref e of
+          App x l -> case deref x of
+            Fun ar f | length l >= ar   ->
+              (l1, l2) = splitAt ar l
+              rules = f szabályai
+
+              case (minden rule-ra rules-ból:
+                mapAccumL illeszt (g, []) $ zip (patts rule) l1) of
+                  (_, Fail) -> ilyen nem lehet
+                  ((g, kötések) , OK, rule-exp, rule-graph) ->  
+
+                    (kötések', átszámozás) = újraszámozni a kötések bal oldalát
+                    g' = g ++ másol átszámozás rule-graph ++ kötések'    (?)
+                    végeredmény:
+                        (rule-exp, g')
+            _ -> vége
+          Fun ar _ | ar == 0             -> ... 
+          _ -> vége
+{-
+            Fun ar _ | ar > length l    -> vége (pl.  result = (++) [1,2])
+            Cons _                      -> vége (pl.  result = Just 3,  result = Cons 1)
+          Lit, Cons                     -> vége
+          Fun ar _ | ar > 1             -> vége (pl.  result = (++))
+-}
+
+illeszt (g, kötések) (Hole n, y)         = ((g, kötések ++ n |-> y), OK)
+illeszt gk (SLit x , SLit x)   = (gk, OK)          
+illeszt gk (SCons x , SCons x) = (gk, OK)
+illeszt gk (App x xs, App y ys) = mapAccumL illeszt gk ((x,y) : zip xs ys)
+illeszt (g, kötések) (x , y)   = case rewriteHNF (y, g)  of
+    nem redukálható -> Fail, következő rule
+    (y', g') ->  illeszt (g', kötések) (x, y')
+
+másol átszámozás rule-graph: (Hole n -> Ref n-új, statikus ref-ekhez új számok kiosztása)
+
+...
+
+mapAccumL :: (acc -> x -> (acc, y)) -> acc -> [x] -> (acc, [y])
+
+mapAccumL :: (gráf -> x -> (gráf, y)) -> gráf -> [x] -> (gráf, [y])
 
 
+Ezt kellene végiggondolni a következő esetben:
+
+  result = head (cycle [1,2])
+
+
+-----------------------------------------
+architektúra
+
+
+
+forrás -> AST  ->  data dekl.  -> binds
+           |                        \--->
+           \--> függvények és konst. ---> renamed  --> gráfátírás
+
+
+
+
+
+-----------------------------------------
 
 További teendők:
 
@@ -18,6 +86,8 @@ data List a = Nil | Cons a (List a)
  Id generálás
     Nil   ->    1
     Cons  ->    2
+  --> bekerül a binds-ba a rename függvénynek
+
 {-
  aritás:
     Nil   -> 0
@@ -49,9 +119,7 @@ Gráfátíró rendszer:
      f3 x y _    = x
 
 
-Cél:
 
-erathosthenes.hs leforduljon,
  - minták
  - konstruktoroknak megfelelő id-k a mintákban
 

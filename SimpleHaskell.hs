@@ -10,7 +10,7 @@ where
   data Decl a
       = FunBind [FunAlt a] -- ^ A function binding consists of one or more function alternatives.
       | PatBind (Patt a) (Expr a) -- ^ A pattern binding consists of a pattern and an expression which is bound to the pattern.
-      | DataDecl a
+--      | DataDecl a
         deriving (Show, Eq)
 
   -- | A function alternative is made up by the name of the function, the list of arguments and the expression.

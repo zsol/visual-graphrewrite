@@ -6,6 +6,7 @@
 module Convert
 where
 
+import Data.List
 import Data.Char
 
 import SimpleHaskell
@@ -18,7 +19,7 @@ convParse (ParseFailed _ _) = []
 convParse (ParseOk m)       = convModule m
 
 splitDecls :: [HsDecl] -> ([HsDecl], [HsDecl])
-splitDecls l = (filter isEnvRelated l, filter (not . isEnvRelated) l)
+splitDecls l = partition isEnvRelated l
     where
       isEnvRelated d = case d of
                          (HsDataDecl _ _ _ _ _ _) -> True

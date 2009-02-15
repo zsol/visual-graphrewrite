@@ -33,7 +33,9 @@ type Binds = Map String Int
 type Names = I.IntMap String
 
 -- | An endless supply of Ints
-type Ids   = Supply Int
+type UniqueIds   = Supply Int
+
+-- type Id = Int
 
 -- | Result monad; error spreads
 data Result a
@@ -72,7 +74,7 @@ swap = \(x,y) -> (y,x)
 -- | Assigns 'Int' identifiers to Strings. Each String gets a unique Int.
 distributeIds 
     :: [String]     -- ^ String identifiers
-    -> Ids          -- ^ Unique Ints
+    -> UniqueIds          -- ^ Unique Ints
     -> Result (Binds, Names, [Int]) 
                     -- ^ Error if there were at least two duplicate strings, otherwise returns the newly created assignments (String -> Int and Int -> String) and the list of assigned Ints.
 distributeIds l ids = case duplicates l of
@@ -82,7 +84,7 @@ distributeIds l ids = case duplicates l of
 	                      i = take (length l) $ map supplyValue $ split ids
 
 -- | Does the same thing as distributeIds, only for [[String]] lists
-distributeIds' :: [[String]] -> Ids -> Result (Binds, Names, [[Int]])
+distributeIds' :: [[String]] -> UniqueIds -> Result (Binds, Names, [[Int]])
 distributeIds' (l:ls) ids = do
   let (ids1, ids2) = split2 ids
   (b, n, i) <- distributeIds l ids1
@@ -102,7 +104,7 @@ mapSnd f (a,b) = (a, f b)
 renameExpr 
     :: Binds        -- ^ Already assigned Strings
     -> Expr String  -- ^ The expression
-    -> Ids          -- ^ An endless supply of unique Ints
+    -> UniqueIds          -- ^ An endless supply of unique Ints
     -> Result (Names, Expr Int) -- ^ If substitution is successful, returns the new assignments and the converted expression; otherwise returns an error.
 renameExpr b (Lit s) ids = return (I.empty, Lit s)
 renameExpr b (Var v) ids = case lookup v b of
@@ -123,14 +125,14 @@ renameExpr b (Let l e) ids = do
   return (I.unions [l_names,  e_names], Let l' e')
 
 -- | This is 'renameExpr' for lists. It applies 'renameExpr' for every 'Expr' in the second parameter.
-renameExprs :: Binds -> [Expr String] -> Ids -> Result (Names, [Expr Int])
+renameExprs :: Binds -> [Expr String] -> UniqueIds -> Result (Names, [Expr Int])
 renameExprs b exprs ids = fmap (mapFst I.unions . unzip) $ sequence [renameExpr b e i | (e,i)<- zip exprs (split ids)]
 
 -- | Substitutes String identifiers to Int ones in a 'Decl' structure.
 renameDecl  
     :: Binds  -- ^ Already assigned Strings (including function names on the same level)
     -> Decl String  -- ^ The declaration
-    -> Ids  -- ^ An endless supply of unique Ints
+    -> UniqueIds  -- ^ An endless supply of unique Ints
     -> Result (String, Names, Decl Int )        -- ^ If substitution is successful, returns the name of the 'Decl', the new assignments (this does not include the name of the 'Decl') and the converted declaration; otherwise returns an error.
 
 renameDecl b (FunBind fas@((n,_,_):_)) ids = do
@@ -149,7 +151,7 @@ renameDecl b (DataDecl a) ids = Ok (a, I.empty, DataDecl (-1))
 
 
 -- | This is 'renameDecl' for lists. It applies 'renameDecl' to every 'Decl' in the second parameter, properly handling the names of the declarations.
-renameDecls :: Binds -> [Decl String] -> Ids 
+renameDecls :: Binds -> [Decl String] -> UniqueIds 
     -> Result (Binds, Names, [Decl Int])     -- ^ If substitution is successful, returns all of the bindings, the new assignments and the list of converted declarations; otherwise returns an error.
 renameDecls b decls ids  = do
 
@@ -187,7 +189,7 @@ joinPatts (Apply s, i) = Apply (map joinPatts (zip s i'))
                          
   
 -- | Does the substitution in function alternatives.      
-renameFunAlt :: Binds -> FunAlt String -> Ids -> Result (Names, FunAlt Int)
+renameFunAlt :: Binds -> FunAlt String -> UniqueIds -> Result (Names, FunAlt Int)
 renameFunAlt b (f, as, e) ids = do --elofeltetel: f mar at van nevezve, es b-ben van errol az info
   let (ids1, ids2) = split2 ids
 
@@ -209,7 +211,7 @@ renameFunAlt b (f, as, e) ids = do --elofeltetel: f mar at van nevezve, es b-ben
       cons _ = True
 
 -- | This is 'renameFunAlt' for lists. It applies 'renameFunAlt' for every 'FunAlt' in the second parameter.
-renameFunAlts :: Binds -> [FunAlt String] -> Ids -> Result (Names, [FunAlt Int])
+renameFunAlts :: Binds -> [FunAlt String] -> UniqueIds -> Result (Names, [FunAlt Int])
 renameFunAlts b funalts ids = fmap (mapFst I.unions . unzip) $ sequence [renameFunAlt b f i | (f,i) <- zip funalts (split ids)]
 
 -------------------------------------------------
@@ -217,7 +219,7 @@ renameFunAlts b funalts ids = fmap (mapFst I.unions . unzip) $ sequence [renameF
 -- | Does the substitution in a 'SimpModule' structure.
 rename :: Binds -- ^ Predefined entities
        -> SimpModule String -- ^ The module which needs substitution
-       -> Ids --  ^ An endless supply of Ints
+       -> UniqueIds --  ^ An endless supply of Ints
        -> Result (Names, SimpModule Int) -- ^ If the substitution is successful, returns the assignments for the global identifiers and the converted 'SimpModule'; otherwise returns an error.
 rename predef decls ids = fmap g $ renameDecls predef decls ids
   where g (a,b,c) = (b,c) 
