@@ -44,8 +44,8 @@ convPars (HsPVar n) = convName n
 convPars (HsPLit n) = Lit (convLit n)
 convPars (HsPApp qn l) = Apply $ (convQName qn) : (map convPars l)
 convPars (HsPParen p) = convPars p
+convPars (HsPAsPat n p) = AsPat (head $ nameExpr $ convName n) (convPars p)
 --convPars (HsPNeg n) --TBD
---convPars (HsPAsPat n p)
 
 
 convName :: HsName -> Expr String

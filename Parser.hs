@@ -7,6 +7,8 @@ import Rename
 import Convert
 import Data.Supply
 import Data.Map
+import RewriteApp
+import RewriteAppTypes
 
 predef :: [String]
 predef = ["++", "div", "mod", "eqInt", "not", "Cons", "Nil", "succ", "True", "False"]

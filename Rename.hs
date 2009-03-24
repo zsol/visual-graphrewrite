@@ -111,6 +111,12 @@ renameExpr b (Var v) ids = case lookup v b of
 	Nothing		-> fail $ "not defined: " ++ v
 	Just i		-> return (I.empty, Var i)
 renameExpr b (Apply l) ids = fmap (mapSnd Apply) $ renameExprs b l ids
+renameExpr b (AsPat n p) ids = do
+  let (ids1, ids2) = split2 ids
+  (_, name, [i]) <- distributeIds [n] ids1
+  (names, e) <- renameExpr b p ids2
+  return (I.union names name, AsPat i e)
+  
 renameExpr b (Cons c) ids = case lookup c b of
                               Nothing -> fail $ "not defined: " ++ c
                               Just i  -> return (I.empty, Cons i)

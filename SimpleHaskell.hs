@@ -16,13 +16,14 @@ where
   -- | A function alternative is made up by the name of the function, the list of arguments and the expression.
   type FunAlt a = (a, [Patt a], Expr a) 
 
-  -- | Four things are considered an expression.
+  -- | These things are considered an expression.
   data Expr a 
       = Let [Decl a] (Expr a) -- ^ A let expression consists of a list of declarations which's scope is limited to the following expression.
       | Var a -- ^ This is a simple variable identified by the type 'a'.
       | Cons a  -- ^ e.g: Left, Just, Nothing
       | Apply [Expr a] -- ^ Expressions can be applied to each other with this constructor.
       | Lit String -- ^ This is a simple string literal.
+      | AsPat a (Patt a) -- ^ This is an alias pattern represented by '@' in Haskell. Should only be inside a Pattern.
 	deriving (Show, Eq)
   
   -- | A pattern is essentially an expression with the exception that it can not be a Let constructor.
@@ -41,6 +42,14 @@ where
   nameExpr (Lit n) = [n]
   nameExpr (Apply es) = concat $ map nameExpr es
 
+  name' :: Decl a -> a
+  name' (FunBind ((x,_,_):_)) = x
+  name' (PatBind n _) = head $ nameExpr' n
+
+  nameExpr' :: Expr a -> [a]
+  nameExpr' (Var n) = [n]
+  nameExpr' (Cons n) = [n]
+  nameExpr' (Apply es) = concat $ map nameExpr' es
 
 
 

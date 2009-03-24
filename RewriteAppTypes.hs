@@ -1,6 +1,8 @@
-module RewriteTypes
+module RewriteAppTypes
 where
 
+  import Data.IntMap
+  
   type Arity = Int
 
   data Expr
@@ -11,6 +13,7 @@ where
       | SHole Int       -- csak szabályban lehet
       | SRef Int
       | SApp Expr [Expr]            -- alkalmazás, az első kifejezés csak SFun és SCons (vagy SRef lehet), mintákban csak SCons lehet
+        deriving (Eq, Show)
 
   type RewriteSystem = IntMap [Rule]  -- ^ funids to alternatives
 
@@ -19,8 +22,9 @@ where
     , exp :: Expr
     , graph :: IntMap Expr      -- ^ images of references
     }
+              deriving (Eq, Show)
 
-
+  type Graph = (Expr, IntMap Expr)
 
 {-
 egy szabály:
