@@ -25,8 +25,10 @@ where
   makeRule (f, ps, e) = Rule 
                         { patts = map makeExprLeft ps
                         , RewriteAppTypes.exp   = makeExprRight e
-                        , graph = I.empty -- TODO
+                        , graph = g
                         }
+      where
+        g = I.empty -- todo (ehhez kell minden azonosito a modulban?)
 
   makeExprLeft :: SH.Expr Int -> Expr
   makeExprLeft (SH.Var v) = SHole v
@@ -58,16 +60,14 @@ where
       case deref e g of
         SApp x l -> case deref x g of
                      SFun ar f 
-                       | length l >= ar -> firstMatch' (I.lookup f rs)
+                       | length l >= ar -> (I.lookup f rs) >>= firstMatch
                        where
                          (l1, l2) = splitAt ar l
-                         firstMatch' Nothing = Nothing
-                         firstMatch' (Just x) = firstMatch x
                          firstMatch [] = Nothing
                          firstMatch (rule:rules)
                              = case L.mapAccumL (match rs) (g, I.fromList []) (zip (patts rule) l1) of
                                  ((g', binds), s) | or s == False -> firstMatch rules
-                                                  | otherwise     -> Just (exp rule, g')
+                                                  | otherwise     -> Just (exp rule, binds)
                      _ -> Nothing
         SFun ar _ | ar == 0 -> Nothing
         _ -> Nothing
@@ -89,6 +89,10 @@ where
 
                                       
 {-
+
+head [sin] 0
+head (a:b) = a
+
 
 Apply [Apply [Var "++", Apply [Var "showInt", Apply [Apply [Var "div", Var "n"], Lit "10"]]],
        Apply [Var "showInt", Apply [Apply [Var "mod", Var "n"], Lit "10"]]]
