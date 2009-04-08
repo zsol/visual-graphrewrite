@@ -90,11 +90,14 @@ main = do
       ids <- newEnumSupply
       let (ids1, ids2) = split2 ids
       let (Ok (predefBinds,_,_)) = distributeIds predef ids2
-      case rename' predefBinds (convParse $ parseModule tmp) ids1 of
+      let (Ok (n,m)) = rename' predefBinds (convParse $parseModule tmp) ids1
+      let rs = makeRewriteRules m
+{-      case rename' predefBinds (convParse $ parseModule tmp) ids1 of
         Ok (n,m) -> pprint m >> pprint n >> pprint (invRename n m) >> 
-                   pprint (invRename n m == (Ok (convParse mod)))
+                   pprint (makeRewriteRules m)
         Hiba f   -> pprint$ "HIBA: " ++ f
-               
+-}
+
 
 readInput :: Maybe String -> IO String
 readInput Nothing = getContents

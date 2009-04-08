@@ -9,13 +9,14 @@ import Data.Supply
 import Data.Map
 import RewriteApp
 import RewriteAppTypes
+import Rewrite
 
 import Foreign
 
 predef = ["++", "div", "mod", "eqInt", "not", "Cons", "Nil", "succ", "True", "False"]
 
 sup = unsafePerformIO newEnumSupply :: Supply Int
-file = unsafePerformIO $ readFile "sample/eratosthenes.hs"
+file = unsafePerformIO $ readFile "sample/fsimple.hs"
 (ids, ids2, ids3) = split3 sup
 
 (Ok (predefBinds,_,_)) = distributeIds predef ids2
@@ -23,3 +24,4 @@ file = unsafePerformIO $ readFile "sample/eratosthenes.hs"
 m = parseModule file
 renamed = rename' predefBinds (convParse m) ids3
 (Ok (_,sm)) = renamed
+rs = makeRewriteRules sm

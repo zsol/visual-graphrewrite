@@ -10,6 +10,8 @@ where
   import RewriteAppTypes
   import qualified SimpleHaskell as SH
 
+  import Data.Maybe
+
   data Result = OK | Fail
 
 -------------------- eliminate SRef
@@ -22,7 +24,7 @@ where
 
 -------------------- flatten SApp in firts arguments
 
-  flattenSApp :: Expr -> Edges -> 
+  flattenSApp :: Expr -> Graph -> 
     ( Expr          -- csak SFun, SCons, SLit lehet
     , [Expr])       -- SFun estén lehet nem üres, SCons, SLit esetén üres
   flattenSApp (SApp x xs) g 
@@ -30,7 +32,7 @@ where
       SApp y ys  -> flattenSApp (SApp y (ys ++ xs)) g
       x          -> (x, xs)
   flattenSApp x _       -- SLit, SCons, SFun  esetén
-    = (x, [], [])
+    = (x, [])
 
 
 --------------------
@@ -45,20 +47,37 @@ where
             | length l == ar -> firstMatch rs g l rules
             | length l  > ar -> do
                       (e, g) <- firstMatch rs g (take ar l) rules
-                      return $ rewriteHNF rs g (SApp e (drop ar l))
+                      pg <- rewriteHNF rs g (SApp e (drop ar l))
+                      return pg
             | otherwise      -> Nothing
             where
                 rules = fromMaybe (error "nincs meg a szabály") (I.lookup f rs)
+{-
+Itt bele kellene tenni, hogy ha nincs meg a szabaly, akkor a fuggveny egy "delta" fuggveny. Ekkor a kovetkezot kell tenni:
+ - a fuggveny osszes argumentumat redukalni. Ezek vegen literalokat kell kapnunk ha tipushelyes a program (a delta fuggvenyek csak elemi tipusokhoz elemi tipusokat rendelhetnek.
+ - mintaillesztest vegezni a fuggvenyre
+   - ha sin, akkor szamolni a literal szinuszat
+   - ha cos, akkor szamolni a literal koszinuszat
+   - ...
+ - a vegeredmeny literalra atiranyitani azokat az eleket, amik a delta fuggvenyre mutattak 
+-}
         _ -> Nothing
 
 
   firstMatch :: RewriteSystem -> Graph -> [Expr] -> [Rule] -> Maybe PointedGraph
-  firstMatch rs [] = Nothing
-  firstMatch rs (rule:rules)
-     = case matches rs g l1 (patts rule)  of
-         ((g', binds), s) | or s == False -> firstMatch rs rules
-                          | otherwise     -> Just (exp rule, g')
+  firstMatch _ _ _ [] = Nothing
+  firstMatch rs g es (rule:rules)
+     = case matches rs g es (patts rule) I.empty  of
+         (g, Just bs) -> Just (substitute bs (exp rule), g)
+         _            -> firstMatch rs g es rules
 
+  substitute 
+      :: I.IntMap Expr -- mit mire
+      -> Expr          -- miben
+      -> Expr
+  substitute bs (SRef n) = fromMaybe (error "Internal error: reference target not found") $ I.lookup n bs
+  substitute bs (SApp e es) = SApp (substitute bs e) (map (substitute bs) es)
+  substitute bs e = e
 
   matches 
     :: RewriteSystem 
@@ -82,7 +101,7 @@ where
     -> Expr           -- ^ minta
     -> I.IntMap Expr  -- ^ kötések
     -> (Graph, Maybe (I.IntMap Expr))
-  match rs g e (SHole n) bs = (g, Just (I.insert n y bs))
+  match rs g e (SHole n) bs = (g, Just (I.insert n e bs))
   match rs g e (SLit y)  bs
         = case rewriteHNF' rs g e of
             (SLit x, g)  | x == y      -> (g, Just bs)
@@ -91,12 +110,12 @@ where
         = case rewriteHNF' rs g e of
             (SCons x, g)  | x == y     -> (g, Just bs)
             _                          -> (g, Nothing)
-
+{-
   match rs g e (SApp y ys) bs
-        = case rewriteHNF' rs g e bs of
+        = case rewriteHNF' rs g e of
             (SApp x xs, Just bs)       -> matches rs g (x:xs) (y:ys) bs
             _                          -> (g, Nothing)
-
+-}
                                       
 {-
 
