@@ -1,6 +1,6 @@
 
 name:                visual-graphrewrite
-version:             0.1
+version:             0.2
 synopsis:            Visualize the graph-rewrite steps of a Haskell program
 description:         Visualize the graph-rewrite steps of a Haskell program
 category:            Development
@@ -8,21 +8,23 @@ license:             BSD3
 license-file:        LICENSE
 author:              Zsolt Dollenstein
 maintainer:          zsol@elte.hu
+build-type:          Simple
 build-Depends:       base, 
                      containers,
                      value-supply, 
                      haskell-src >= 1.0.1.2,
                      ipprint
 build-type:          Simple
+extensions:          PatternGuards
 extra-source-files:  sample/egyszeru.hs,
                      sample/pl.hs,
-		     sample/simple.hs,
-		     sample/fsimple.hs
-		     sample/eratosthenes.hs
-		     TODO
+                     sample/simple.hs,
+                     sample/fsimple.hs
+                     sample/eratosthenes.hs
+                     TODO
 
 executable:          rewrite
 main-is:             Parser.hs
-other-modules:       Rename, SimpleHaskell, Convert, RewriteApp, RewriteAppTypes
+other-modules:       Rename, SimpleHaskell, Convert, RewriteApp, RewriteAppTypes, Rewrite
 ghc-options:         
 

@@ -7,26 +7,48 @@ where
 
   data Expr
       = SCons Int
-      | SFun  Arity Int     -- mintában nem lehet
+      | SFun  Arity Int  -- mintában (szabály bal oldalán) nem lehet
  -- ezeknek nincsenek gyerekeik
-      | SLit String     -- konstruktor
-      | SHole Int       -- csak szabályban lehet
-      | SRef Int
-      | SApp Expr [Expr]            -- alkalmazás, az első kifejezés csak SFun és SCons (vagy SRef lehet), mintákban csak SCons lehet
+      | SLit String      -- konstruktor
+      | SHole Int        -- csak szabályban lehet (adatgráfban nem lehet)
+      | SRef Int         -- adatgráfban és a szabályok jobb oldalán a megosztást (sharing) lehet vele kifejezni)
+      | SApp Expr [Expr] -- alkalmazás, az első kifejezés csak SFun és SCons (vagy SRef lehet), mintákban csak SCons lehet
         deriving (Eq, Show)
 
   type RewriteSystem = IntMap [Rule]  -- ^ funids to alternatives
 
   data Rule = Rule 
     { patts :: [Expr]
-    , exp :: Expr
-    , graph :: IntMap Expr      -- ^ images of references
+    , exp   :: Expr
+    , graph :: Graph      -- ^ images of references
     }
               deriving (Eq, Show)
 
-  type Graph = (Expr, IntMap Expr)
+  type Graph = IntMap Expr  
+
+  type PointedGraph = (Expr, Graph)   
 
 {-
+ f x = x
+
+ Rule 
+    { patts = [SHole 3]
+    , exp   = SHole 3
+    , graph = fromList []
+    }
+
+------------------------------------------
+    
+ f x = y + y where y = x * x
+
+ Rule 
+    { patts = [SHole 3]
+    , exp   = SApp (SFun 2 320) [SRef 0, SRef 0]
+    , graph = fromList 
+        [ (0, SApp (SFun 2 321) [SHole 3, SHole 3])
+        ]
+
+----------------------------------------- lehet hogy régi
 egy szabály:
 
 
