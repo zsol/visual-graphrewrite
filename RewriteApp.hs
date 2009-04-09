@@ -18,12 +18,13 @@ where
         hid  = SH.name' h
         rest = makeRewriteRules t
         extend l (SH.FunBind as)  = L.nub $ l ++ map makeRule as
+        extend l (SH.PatBind (SH.Var v) e) = extend l (SH.FunBind [(v, [], e)]) -- special case to handle variable bindings
         extend l _ = l
 
   makeRule :: SH.FunAlt Int -> Rule
   makeRule (f, ps, e) = fixExpr $ Rule { patts = map makePat ps,
-                                                 exp = makeExpr e,
-                                                 graph = makeGraph ps } 
+                                         exp = makeExpr e,
+                                         graph = makeGraph ps } 
 
   makePat :: SH.Expr Int -> Expr
   makePat (SH.AsPat a e) = makeExpr e

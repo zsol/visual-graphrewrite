@@ -44,7 +44,7 @@ primes = eratos (enumF 2)
 
 --fil :: (a -> Bool) -> [a] -> [a]
 fil v Nil = Nil                       -- @ (@ fil v) Nil
-fil p (Cons h t) = fil' p (Cons h t) (p h)
+fil p l@(Cons h t) = fil' p l (p h)
 
 {-
 type Graph = (Int, IntMap X)

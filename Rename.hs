@@ -118,7 +118,7 @@ renameExpr b (Var v) ids = case lookup v b of
 	Just i		-> return (I.empty, Var i)
 renameExpr b (Apply l) ids = fmap (mapSnd Apply) $ renameExprs b l ids
 renameExpr b (AsPat n p) ids = do
-  let (Just i) = lookup n b
+  let (Just i) = lookup n b -- FIXME: fail properly like above
   (names, e) <- renameExpr b p ids
   return (names, AsPat i e)
   
