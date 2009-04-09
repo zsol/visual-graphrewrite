@@ -71,6 +71,12 @@ instance Functor Result where
 swap :: (a, b) -> (b, a)
 swap = \(x,y) -> (y,x)
 
+namesToBinds :: Names -> Binds
+namesToBinds = fromList . map (swap) . I.toList
+
+bindsToNames :: Binds -> Names
+bindsToNames = I.fromList . map (swap) . toList
+
 -- | Assigns 'Int' identifiers to Strings. Each String gets a unique Int.
 distributeIds 
     :: [String]     -- ^ String identifiers
@@ -108,14 +114,13 @@ renameExpr
     -> Result (Names, Expr Int) -- ^ If substitution is successful, returns the new assignments and the converted expression; otherwise returns an error.
 renameExpr b (Lit s) ids = return (I.empty, Lit s)
 renameExpr b (Var v) ids = case lookup v b of
-	Nothing		-> fail $ "not defined: " ++ v
+	Nothing		-> fail $ "renameExpr - not defined: " ++ v
 	Just i		-> return (I.empty, Var i)
 renameExpr b (Apply l) ids = fmap (mapSnd Apply) $ renameExprs b l ids
 renameExpr b (AsPat n p) ids = do
-  let (ids1, ids2) = split2 ids
-  (_, name, [i]) <- distributeIds [n] ids1
-  (names, e) <- renameExpr b p ids2
-  return (I.union names name, AsPat i e)
+  let (Just i) = lookup n b
+  (names, e) <- renameExpr b p ids
+  return (names, AsPat i e)
   
 renameExpr b (Cons c) ids = case lookup c b of
                               Nothing -> fail $ "not defined: " ++ c
@@ -197,7 +202,7 @@ joinPatts (Apply s, i) = Apply (map joinPatts (zip s i'))
 -- | Does the substitution in function alternatives.      
 renameFunAlt :: Binds -> FunAlt String -> UniqueIds -> Result (Names, FunAlt Int)
 renameFunAlt b (f, as, e) ids = do --elofeltetel: f mar at van nevezve, es b-ben van errol az info
-  let (ids1, ids2) = split2 ids
+  let (ids1, ids2, ids3) = split3 ids
 
   f' <- case lookup f b of
           Just i  -> return i
@@ -205,16 +210,18 @@ renameFunAlt b (f, as, e) ids = do --elofeltetel: f mar at van nevezve, es b-ben
 
   let as' = removeCons as --don't want to reassign ids to constructors, duh
 
-  (b', as_names, _) <- distributeIds' (map nameExpr as') ids1
+  (asb, as_names1, _) <- distributeIds' (map nameExpr as') ids1
 
-  let b'' = union b' b
+  (as_names2, as'') <- renameExprs (union asb b) as' ids1
 
-  tmp <- sequence $ fmap (\x -> renameExpr b'' x ids1) as --EVIL! using ids1 twice but this call of renameExpr shouldn't really use it
-  let (_, as'') = unzip tmp --we already have as_names from above, thank you.
+  let b' = unions [(namesToBinds as_names2), asb, b]
 
-  (e_names, e') <- renameExpr b'' e ids2
+  tmp <- sequence $ fmap (\x -> renameExpr b' x ids3) as 
+  let (_as_lonames, as'') = unzip tmp --as_leftover_names
 
-  return (I.union as_names e_names, (f', as'', e'))
+  (e_names, e') <- renameExpr b' e ids2
+
+  return (I.unions ([as_names1, as_names2, e_names]), (f', as'', e'))
     where
       removeCons [] = []
       removeCons ((Cons _):t) = removeCons t

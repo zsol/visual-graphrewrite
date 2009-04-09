@@ -21,29 +21,40 @@ where
         extend l _ = l
 
   makeRule :: SH.FunAlt Int -> Rule
-  makeRule (f, ps, e) = Rule 
-                        { patts = map makeExprLeft ps
-                        , RewriteAppTypes.exp   = makeExprRight e
-                        , graph = I.empty -- TODO
-                        }
+  makeRule (f, ps, e) = fixExpr $ Rule { patts = map makePat ps,
+                                                 exp = makeExpr e,
+                                                 graph = makeGraph ps } 
 
-  makeExprLeft :: SH.Expr Int -> Expr
-  makeExprLeft (SH.Var v) = SHole v
-  makeExprLeft (SH.Cons c) = SCons c
-  makeExprLeft (SH.Apply (h@(SH.Cons c):t)) = SApp (SCons c) (map makeExprLeft t)
-  makeExprLeft (SH.Lit l) = SLit l
+  makePat :: SH.Expr Int -> Expr
+  makePat (SH.AsPat a e) = makeExpr e
+  makePat x = makeExpr x
 
-  makeExprRight :: SH.Expr Int -> Expr
-  makeExprRight (SH.Var v) = SRef v
-  makeExprRight (SH.Cons c) = SCons c
-  makeExprRight (SH.Lit l) = SLit l
-  makeExprRight (SH.Apply (h@(SH.Cons c):t)) = SApp (SCons c) (map makeExprRight t)
-  makeExprRight (SH.Apply (h@(SH.Var v):t))  = SApp (SFun (length t) v) (map makeExprRight t) -- ez vajon igy jo?
-  makeExprRight (SH.Apply (h@(SH.Apply (ih:it)):t)) = SApp (fst la) (snd la)
+  makeExpr :: SH.Expr Int -> Expr
+  makeExpr (SH.Var v) = SHole v
+  makeExpr (SH.Cons c) = SCons c
+  makeExpr (SH.Lit l) = SLit l
+  makeExpr (SH.Apply (h@(SH.Cons c):t)) = SApp (SCons c) (map makeExpr t)
+  makeExpr (SH.Apply (h@(SH.Var v):t))  = SApp (SFun (length t) v) (map makeExpr t) -- ez vajon igy jo?
+  makeExpr (SH.Apply (h@(SH.Apply (ih:it)):t)) = SApp (fst la) (snd la)
       where
-        la = liftApp $ makeExprRight h
-        liftApp (SApp (SFun a f) l) = (SFun (a + (length t)) f, l ++ (map makeExprRight t))
-        liftApp (SApp (SCons c) l) = (SCons c, l ++ (map makeExprRight t))
+        la = liftApp $ makeExpr h
+        liftApp (SApp (SFun a f) l) = (SFun (a + (length t)) f, l ++ (map makeExpr t))
+        liftApp (SApp (SCons c) l) = (SCons c, l ++ (map makeExpr t))
 
-
+  fixExpr :: Rule -> Rule
+  fixExpr r@(Rule {exp = e, graph = g}) = r { exp = doFix e }
+      where
+        doFix x@(SHole h) = case I.lookup h g of 
+                              Just e -> SRef h
+                              _      -> x
+        doFix (SApp e es) = SApp (doFix e) (map doFix es)
+        doFix x = x
+            
+                                            
+        
+  makeGraph :: [SH.Expr Int] -> Graph
+  makeGraph (p:ps) = case p of
+                       SH.AsPat a e -> I.insert a (makeExpr e) (makeGraph ps)
+                       otherwise    -> makeGraph ps
+  makeGraph [] = I.empty
 

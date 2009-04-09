@@ -25,6 +25,6 @@ extra-source-files:  sample/egyszeru.hs,
 
 executable:          rewrite
 main-is:             Parser.hs
-other-modules:       Rename, SimpleHaskell, Convert, RewriteApp, RewriteAppTypes, Rewrite
+other-modules:       Rename, SimpleHaskell, Convert, RewriteApp, RewriteAppTypes, Rewrite, CmdLineOpts
 ghc-options:         
 

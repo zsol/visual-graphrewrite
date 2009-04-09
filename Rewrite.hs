@@ -37,17 +37,17 @@ where
 
 --------------------
 
-  rewriteHNF' :: RewriteSystem -> Graph -> Expr -> PointedGraph
-  rewriteHNF' rs g e = fromMaybe (e, g) $ rewriteHNF rs g e 
+  rewriteHNF' :: RewriteSystem -> Expr -> Graph -> PointedGraph
+  rewriteHNF' rs e g = fromMaybe (e, g) $ rewriteHNF rs e g 
 
-  rewriteHNF :: RewriteSystem -> Graph -> Expr -> Maybe PointedGraph
-  rewriteHNF rs g e = 
+  rewriteHNF :: RewriteSystem -> Expr -> Graph -> Maybe PointedGraph
+  rewriteHNF rs e g = 
       case flattenSApp (deref e g) g of
         (SFun ar f, l) 
             | length l == ar -> firstMatch rs g l rules
             | length l  > ar -> do
                       (e, g) <- firstMatch rs g (take ar l) rules
-                      pg <- rewriteHNF rs g (SApp e (drop ar l))
+                      pg <- rewriteHNF rs (SApp e (drop ar l)) g
                       return pg
             | otherwise      -> Nothing
             where
@@ -103,19 +103,19 @@ Itt bele kellene tenni, hogy ha nincs meg a szabaly, akkor a fuggveny egy "delta
     -> (Graph, Maybe (I.IntMap Expr))
   match rs g e (SHole n) bs = (g, Just (I.insert n e bs))
   match rs g e (SLit y)  bs
-        = case rewriteHNF' rs g e of
+        = case rewriteHNF' rs e g of
             (SLit x, g)  | x == y      -> (g, Just bs)
             _                          -> (g, Nothing)
   match rs g e (SCons y) bs
-        = case rewriteHNF' rs g e of
+        = case rewriteHNF' rs e g of
             (SCons x, g)  | x == y     -> (g, Just bs)
             _                          -> (g, Nothing)
-{-
+
   match rs g e (SApp y ys) bs
-        = case rewriteHNF' rs g e of
-            (SApp x xs, Just bs)       -> matches rs g (x:xs) (y:ys) bs
+        = case rewriteHNF' rs e g of
+            (SApp x xs, bs)            -> matches rs g (x:xs) (y:ys) bs
             _                          -> (g, Nothing)
--}
+
                                       
 {-
 

@@ -39,7 +39,8 @@ where
   nameExpr :: Expr String -> [String]
   nameExpr (Var n) = [n]
   nameExpr (Cons n) = [n]
-  nameExpr (Lit n) = [n]
+  nameExpr (Lit n) = []
+  nameExpr (AsPat p e) = p : nameExpr e
   nameExpr (Apply es) = concat $ map nameExpr es
 
   name' :: Decl a -> a
