@@ -8,20 +8,21 @@ import Convert
 import Data.Supply
 import Data.Map
 import RewriteApp
-import RewriteAppTypes
+import RewriteTypes
 import Rewrite
+import DeltaFunctions
 
 import Foreign
 
-predef = ["++", "div", "mod", "eqInt", "not", "Cons", "Nil", "succ", "True", "False"]
+predef = deltaNames
 
 sup = unsafePerformIO newEnumSupply :: Supply Int
-file = unsafePerformIO $ readFile "sample/fsimple.hs"
+file = unsafePerformIO $ readFile "sample/eratosthenes.hs"
 (ids, ids2, ids3) = split3 sup
 
 (Ok (predefBinds,_,_)) = distributeIds predef ids2
 
 m = parseModule file
 renamed = rename' predefBinds (convParse m) ids3
-(Ok (_,sm)) = renamed
-rs = makeRewriteRules sm
+(Ok (n,sm)) = renamed
+rs = makeRewriteSystem sm n

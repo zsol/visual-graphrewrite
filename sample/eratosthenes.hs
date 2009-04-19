@@ -1,4 +1,5 @@
 data List a = Nil | Cons a (List a)
+              deriving (Show)
 
 --result :: String
 result = showIntList primes
@@ -25,14 +26,14 @@ showIntList (Cons h t) = (++) (showInt h) ((++) ", " (showIntList t))
 --primesbelow n = showIntList (eratos (enumFT 2 n))
 
 --f :: Int -> Int -> Bool
-f h x = not (eqInt (mod x h) 0)
+f h x = not ((eqInt) (mod x h) 0)
 
 --eratos :: [Int] -> [Int]
 eratos (Cons h t) = Cons h (fil (f h) (eratos t))
 eratos Nil = Nil
 
 --enumFT :: Int -> Int -> [Int]
---enumFT f t 
+--enumFT f t
 --    | f > t = Nil
 --    | otherwise = Cons f (enumFT ((+) f 1) t)
 
@@ -71,8 +72,8 @@ fil' p (Cons h t) True = Cons h (fil p t)
 fil' p (Cons h t) False = fil p t
 
 
-{- 
-eratos [2,3,4,5,6,7] 
+{-
+eratos [2,3,4,5,6,7]
 == 2:filter (f 2) (eratos [3,4,5,6,7])
 == 2:filter (f 2) (3:filter (f 3) (eratos [4,5,6,7]))
 == 2:filter (f 2) (3:filter (f 3) (4:filter (f 4) (eratos [5,6,7])))

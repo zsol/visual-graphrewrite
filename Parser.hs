@@ -5,9 +5,10 @@ import Rename
 import Convert
 import Rewrite
 import RewriteApp
-import RewriteAppTypes
+import RewriteTypes
 --import DataGraph
 import CmdLineOpts
+import DeltaFunctions
 
 import Language.Haskell.Parser -- parseModule
 import IPPrint --pprint
@@ -21,7 +22,7 @@ import Data.Maybe ( fromMaybe )
 
 
 predef :: [String]
-predef = ["++", "div", "mod", "eqInt", "not", "Cons", "Nil", "succ", "True", "False"]
+predef = deltaNames
 
 main :: IO ()
 main = do
@@ -39,7 +40,7 @@ main = do
       let (ids1, ids2) = split2 ids
       let (Ok (predefBinds,_,_)) = distributeIds predef ids2
       let (Ok (n,m)) = rename' predefBinds (convParse $parseModule tmp) ids1
-      let rs = makeRewriteRules m
+      let rs = makeRewriteSystem m n
       pprint rs
 {-      case rename' predefBinds (convParse $ parseModule tmp) ids1 of
         Ok (n,m) -> pprint m >> pprint n >> pprint (invRename n m) >>

@@ -1,19 +1,23 @@
-module RewriteApp 
-    ( makeRewriteRules )
+
+module RewriteApp
+    ( makeRewriteRules, invMakeExpr, makeRewriteSystem )
 where
   import Prelude hiding (exp)
 
   import qualified Data.IntMap as I
   import qualified Data.List as L
 
-  import RewriteAppTypes
+  import RewriteTypes
   import qualified SimpleHaskell as SH
 
+  makeRewriteSystem :: SH.SimpModule Int -> I.IntMap String -> RewriteSystem
+  makeRewriteSystem m nms = (makeRewriteRules m) { names = nms }
+
   makeRewriteRules :: SH.SimpModule Int -> RewriteSystem
-  makeRewriteRules []    = I.empty
-  makeRewriteRules (h:t) = case I.lookup hid rest of
-                             Just rs -> I.insert hid (extend rs h) rest
-                             Nothing -> I.insert hid (extend [] h) rest
+  makeRewriteRules []    = defaultRS
+  makeRewriteRules (h:t) = case I.lookup hid (rules rest) of -- FIXME vv
+                             Just rs -> defaultRS { rules = I.insert hid (extend rs h) (rules rest) }
+                             Nothing -> defaultRS { rules = I.insert hid (extend [] h) (rules rest) }
       where
         hid  = SH.name' h
         rest = makeRewriteRules t
@@ -24,7 +28,7 @@ where
   makeRule :: SH.FunAlt Int -> Rule
   makeRule (f, ps, e) = fixExpr $ Rule { patts = map makePat ps,
                                          exp = makeExpr e,
-                                         graph = makeGraph ps } 
+                                         graph = makeGraph ps }
 
   makePat :: SH.Expr Int -> Expr
   makePat (SH.AsPat a e) = makeExpr e
@@ -45,17 +49,24 @@ where
   fixExpr :: Rule -> Rule
   fixExpr r@(Rule {exp = e, graph = g}) = r { exp = doFix e }
       where
-        doFix x@(SHole h) = case I.lookup h g of 
+        doFix x@(SHole h) = case I.lookup h g of
                               Just e -> SRef h
                               _      -> x
         doFix (SApp e es) = SApp (doFix e) (map doFix es)
         doFix x = x
-            
-                                            
-        
+
+
+
   makeGraph :: [SH.Expr Int] -> Graph
   makeGraph (p:ps) = case p of
                        SH.AsPat a e -> I.insert a (makeExpr e) (makeGraph ps)
                        otherwise    -> makeGraph ps
   makeGraph [] = I.empty
+
+  invMakeExpr :: Expr -> SH.Expr Int
+  invMakeExpr (SCons c) = SH.Cons c
+  invMakeExpr (SLit l)  = SH.Lit l
+  invMakeExpr (SFun ar f) = SH.Var f
+  invMakeExpr (SHole v) = SH.Lit ("THIS IS A BUG - " ++ show v)
+  invMakeExpr (SApp x xs) = SH.Apply (invMakeExpr x : map invMakeExpr xs)
 
