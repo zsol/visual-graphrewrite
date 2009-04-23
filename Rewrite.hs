@@ -17,7 +17,11 @@ where
 
 -------------------- eliminate SRef
 
-  deref :: Expr -> I.IntMap Expr -> Expr
+  -- | Replace SRef structure for the referenced expression. Errors out if there is no dereference.
+  deref
+      :: Expr -- ^ Expression to be dereferenced. If not an SRef then this will be the result.
+      -> I.IntMap Expr -- ^ Images of SRefs
+      -> Expr -- ^ Dereferenced expression.
   deref (SRef ref) im = case I.lookup ref im of
                           Just e  -> deref e im
                           Nothing -> error "deref" -- SRef ref
@@ -25,9 +29,10 @@ where
 
 -------------------- flatten SApp in first arguments
 
+  -- | This function tries to eliminate SApp structures nested in the first argument.
   flattenSApp :: Expr -> Graph ->
-    ( Expr          -- csak SFun, SCons, SLit lehet
-    , [Expr])       -- SFun estén lehet nem üres, SCons, SLit esetén üres
+    ( Expr          -- ^ Symbol to be applied. Can only be SFun, SCons or SLit.
+    , [Expr])       -- ^ Arguments. In case of SFun, this can not be empty, otherwise this should be empty.
   flattenSApp (SApp x xs) g
     = case deref x g of
       SApp y ys  -> flattenSApp (SApp y (ys ++ xs)) g
@@ -107,6 +112,7 @@ where
   substitute bs (SApp e es) = SApp (substitute bs e) (map (substitute bs) es)
   substitute bs e = e
 
+  -- | Pattern matching for multiple expressions and patterns. See also 'match'.
   matches
     :: RewriteSystem
     -> Graph
@@ -121,11 +127,11 @@ where
         (g, Just bs)    -> matches rs g es ps bs
         x               -> x
 
-
+  -- | Does the pattern matching.
   match
     :: RewriteSystem
-    -> Graph
-    -> Expr           -- ^ Expression
+    -> Graph          -- ^ Images of references
+    -> Expr           -- ^ Expression to be matched.
     -> Expr           -- ^ Pattern
     -> I.IntMap Expr  -- ^ Binds
     -> (Graph, Maybe (I.IntMap Expr))
