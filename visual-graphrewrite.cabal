@@ -12,6 +12,7 @@ build-type:          Simple
 build-Depends:       base,
                      containers,
                      value-supply,
+                     lazysmallcheck,
                      haskell-src >= 1.0.1.2,
                      ipprint
 build-type:          Simple

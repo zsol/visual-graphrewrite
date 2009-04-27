@@ -17,28 +17,9 @@ where
 
 -------------------- eliminate SRef
 
-  -- | Replace SRef structure for the referenced expression. Errors out if there is no dereference.
-  deref
-      :: Expr -- ^ Expression to be dereferenced. If not an SRef then this will be the result.
-      -> I.IntMap Expr -- ^ Images of SRefs
-      -> Expr -- ^ Dereferenced expression.
-  deref (SRef ref) im = case I.lookup ref im of
-                          Just e  -> deref e im
-                          Nothing -> error "deref" -- SRef ref
-  deref e _ = e
 
 -------------------- flatten SApp in first arguments
 
-  -- | This function tries to eliminate SApp structures nested in the first argument.
-  flattenSApp :: Expr -> Graph ->
-    ( Expr          -- ^ Symbol to be applied. Can only be SFun, SCons or SLit.
-    , [Expr])       -- ^ Arguments. In case of SFun, this can not be empty, otherwise this should be empty.
-  flattenSApp (SApp x xs) g
-    = case deref x g of
-      SApp y ys  -> flattenSApp (SApp y (ys ++ xs)) g
-      x          -> (x, xs)
-  flattenSApp x _       -- SLit, SCons, SFun  esetén
-    = (x, [])
 
 
 --------------------

@@ -6,11 +6,13 @@ import Language.Haskell.Parser
 import Rename
 import Convert
 import Data.Supply
+import qualified Data.IntMap as I
 import Data.Map
 import RewriteApp
 import RewriteTypes
 import Rewrite
 import DeltaFunctions
+import Visualize
 
 import Foreign
 
