@@ -113,7 +113,20 @@ graphToGr ids rs (e, g) = insExpr (-1) ids e IG.empty
           | otherwise = IG.insNode (i, genName rs e) gr
 
 outputDot :: Gr String String -> String -> IO ()
-outputDot gr fname = writeFile fname $ graphviz gr "g" (5,5) (1,1) Portrait
+outputDot gr fname = writeFile fname $ render $ ppGr gr --graphviz gr "g" (5,5) (1,1) Portrait
+
+ppGr :: Gr String String -> Doc
+ppGr gr = text "digraph g" <+>
+          (braces $
+                  text gStyle $+$
+                  vcat pnodes $+$
+                  vcat pedges)
+    where
+--      f = uncurry (liftM2 (,))
+--      (nodes, edges) = (f (labNodes, labEdges)) gr
+      (nodes, edges) = (IG.labNodes gr, IG.labEdges gr)
+      pnodes = map (\(x,y) -> dQText (show x) <+> (brackets $ text "label =" <+> dQText y)) nodes
+      pedges = map (\(x,y,z) -> dQText (show x) <+> text "->" <+> dQText (show y)) edges
 
 {-
 

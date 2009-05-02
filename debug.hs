@@ -35,8 +35,8 @@ rs = makeRewriteSystem sm n
 
 (i1, i2, i3) = split3 ids
 
-(Ok (nev, modul)) = rename' predefBinds (convParse $ parseModule "result x = let {a = b; b=a} in a") i1
+(Ok (nev, modul)) = rename' predefBinds (convParse $ parseModule "result x = let {a = Cons 1 b; b=a} in a") i1
 rendsz =  makeRewriteSystem modul nev
 pg = let r = (head $ fromJust $ I.lookup 0 (rules rendsz)) in (exp r, graph r)
 
-dotout fname ids rs pg = writeFile fname (graphviz' $ graphToGr ids rs pg)
+gr = graphToGr i2 rendsz pg
