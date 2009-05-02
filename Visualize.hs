@@ -8,6 +8,11 @@ import Text.PrettyPrint
 
 import Control.Applicative
 
+import Data.Supply
+
+import Data.Graph.Inductive.Graphviz
+import Data.Graph.Inductive.Tree
+import qualified Data.Graph.Inductive.Graph as IG
 import Data.IntMap hiding (map)
 import Data.Maybe
 import Data.List (findIndex)
@@ -48,8 +53,10 @@ dQText :: String -> Doc
 dQText = doubleQuotes . text
 
 exprToGraph :: RewriteSystem -> Expr -> VisGraph
-exprToGraph rs e@(SApp f es) = (genLabel rs f, map exprID es) : concatMap (exprToGraph rs) es
-exprToGraph rs e = [(genLabel rs e, [])]
+exprToGraph = helper 0
+    where
+      helper i rs e@(SApp f es) = (show i ++ genLabel rs f, map (\e -> show (i+1) ++ exprID e) es) : concatMap (helper (i+1) rs) es
+      helper i rs e = [(show i ++ genLabel rs e, [])]
 
 genLabel :: RewriteSystem -> Expr -> String
 genLabel rs (SCons c) = show c ++ "|" ++ lkp rs c
@@ -59,7 +66,57 @@ genLabel rs (SHole h) = show h ++ "|" ++ lkp rs h
 genLabel rs (SRef r) = show r ++ "|" ++ lkp rs r
 genLabel rs (SApp e es)  = unwords $ (genLabel rs e) : map (genLabel rs) es
 
-
-
 lkp rs i = fromMaybe "UNDEFINED" $ lookup i (names rs)
 
+genName :: RewriteSystem -> Expr -> String
+genName rs (SCons c) = lkp rs c
+genName rs (SFun _ f) = lkp rs f
+genName rs (SHole h) = lkp rs h
+genName rs (SRef r) = lkp rs r
+genName rs (SApp e es) = unwords $ (genName rs e) : map (genName rs) es
+genName _ (SLit l) = l
+
+genID :: Supply Int -> Expr -> Int
+genID _ (SCons c) = c
+genID _ (SFun _ f) = f
+genID _ (SHole h) = h
+--genID _ (SRef r) = r
+genID ids e = genNewID ids e
+
+genNewID = const . supplyValue
+
+genLNode :: Supply Int -> RewriteSystem -> Expr -> IG.LNode String
+genLNode ids rs e = (genID ids e, genName rs e)
+
+genLEdge :: Supply Int -> Expr -> Expr -> IG.LEdge String
+genLEdge ids e f = (genID i e, genID j f, "")
+    where
+      (i, j) = split2 ids
+
+graphToGr :: Supply Int -> RewriteSystem -> PointedGraph -> Gr String String
+graphToGr ids rs (e, g) = insExpr (-1) ids e IG.empty
+    where
+      insExpr i ids e@(SRef r) gr = let
+          refe = fromJust (lookup r g)
+          (ids1, ids2) = split2 ids
+        in
+          if i < 0 then
+              let en@(eid, _) = genLNode ids1 rs e in
+              IG.insEdge (eid, r, "") $ insExpr r ids2 refe $ IG.insNode en gr
+          else
+              if IG.gelem i gr then
+                  gr
+              else
+                  IG.insEdge (i, r, "") $ insExpr r ids2 refe $ IG.insNode (i, genName rs e) gr
+      insExpr i ids e gr
+          | i < 0 = IG.insNode (genLNode ids rs e) gr
+          | otherwise = IG.insNode (i, genName rs e) gr
+
+outputDot :: Gr String String -> String -> IO ()
+outputDot gr fname = writeFile fname $ graphviz gr "g" (5,5) (1,1) Portrait
+
+{-
+
+insNode (2 SRef 1 $ insNode (1, "b") $ insNode (4, "a") empty
+
+-}
