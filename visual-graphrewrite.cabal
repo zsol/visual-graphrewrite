@@ -14,7 +14,16 @@ build-Depends:       base,
                      value-supply,
                      lazysmallcheck,
                      haskell-src >= 1.0.1.2,
-                     ipprint
+                     ipprint,
+                     strict-concurrency >= 0.2.1,
+                     parallel >= 1.1.0.1,
+                     directory >= 1.0.0.3,
+                     process >= 1.0.1.1,
+                     fgl >= 5.4.2.2,
+                     pretty >= 1.0.1.0,
+                     gtk >= 0.10.0,
+                     svgcairo >= 0.10.0,
+                     cairo >= 0.10.0
 build-type:          Simple
 extensions:          PatternGuards
 extra-source-files:  sample/egyszeru.hs,
