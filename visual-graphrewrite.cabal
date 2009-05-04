@@ -9,12 +9,12 @@ license-file:        LICENSE
 author:              Zsolt Dollenstein
 maintainer:          zsol@elte.hu
 build-type:          Simple
-build-Depends:       base,
-                     containers,
-                     value-supply,
-                     lazysmallcheck,
+build-Depends:       base >= 4.1.0.0,
+                     containers >= 0.2.0.0,
+                     value-supply >= 0.5,
+                     lazysmallcheck >= 0.3,
                      haskell-src >= 1.0.1.2,
-                     ipprint,
+                     ipprint >= 0.3,
                      strict-concurrency >= 0.2.1,
                      parallel >= 1.1.0.1,
                      directory >= 1.0.0.3,
@@ -31,11 +31,10 @@ extra-source-files:  sample/egyszeru.hs,
                      sample/simple.hs,
                      sample/fsimple.hs
                      sample/eratosthenes.hs
-                     TODO
                      debug.hs
 
 executable:          rewrite
 main-is:             Parser.hs
-other-modules:       Rename, SimpleHaskell, Convert, RewriteApp, RewriteTypes, Rewrite, CmdLineOpts, DeltaFunctions
+other-modules:       Rename, SimpleHaskell, Convert, RewriteApp, RewriteTypes, Rewrite, CmdLineOpts, DeltaFunctions, Visualize, Test
 ghc-options:
 
