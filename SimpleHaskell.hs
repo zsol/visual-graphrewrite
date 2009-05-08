@@ -39,7 +39,7 @@ where
   nameExpr :: Expr String -> [String]
   nameExpr (Var n) = [n]
   nameExpr (Cons n) = [n]
-  nameExpr (Lit n) = []
+  nameExpr (Lit _n) = []
   nameExpr (AsPat p e) = p : nameExpr e
   nameExpr (Apply es) = concat $ map nameExpr es
 

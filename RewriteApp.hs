@@ -26,27 +26,28 @@ where
         extend l _ = l
 
   makeRule :: SH.FunAlt Int -> Rule
-  makeRule (f, ps, e) = fixExpr $ Rule { patts = map makePat ps,
+  makeRule (_, ps, e) = fixExpr $ Rule { patts = map makePat ps,
                                          exp = makeExpr e,
                                          graph = makeGraph (e:ps) }
 
   makePat :: SH.Expr Int -> Expr
-  makePat (SH.AsPat a e) = makeExpr e
+  makePat (SH.AsPat _ e) = makeExpr e
   makePat x = makeExpr x
 
   makeExpr :: SH.Expr Int -> Expr
   makeExpr (SH.Var v) = SHole v
   makeExpr (SH.Cons c) = SCons c
   makeExpr (SH.Lit l) = SLit l
-  makeExpr (SH.Let ds e) = makeRefExpr e
-  makeExpr (SH.Apply (h@(SH.Cons c):t)) = SApp (SCons c) (map makeExpr t)
-  makeExpr (SH.Apply (h@(SH.Var v):t))  = SApp (SFun (length t) v) (map makeExpr t) -- ez vajon igy jo?
-  makeExpr (SH.Apply (h@(SH.Apply (ih:it)):t)) = SApp (fst la) (snd la)
+  makeExpr (SH.Let _ e) = makeRefExpr e
+  makeExpr (SH.Apply ((SH.Cons c):t)) = SApp (SCons c) (map makeExpr t)
+  makeExpr (SH.Apply ((SH.Var v):t))  = SApp (SFun (length t) v) (map makeExpr t) -- ez vajon igy jo?
+  makeExpr (SH.Apply (h@(SH.Apply (_:_)):t)) = SApp (fst la) (snd la)
       where
         la = liftApp $ makeExpr h
         liftApp (SApp (SFun a f) l) = (SFun (a + (length t)) f, l ++ (map makeExpr t))
         liftApp (SApp (SCons c) l) = (SCons c, l ++ (map makeExpr t))
-
+  
+  makeRefExpr :: SH.Expr Int -> Expr
   makeRefExpr = holeToRef . makeExpr
       where
         holeToRef (SHole h) = SRef h
@@ -57,7 +58,7 @@ where
   fixExpr r@(Rule {exp = e, graph = g}) = r { exp = doFix e }
       where
         doFix x@(SHole h) = case I.lookup h g of
-                              Just e -> SRef h
+                              Just _ -> SRef h
                               _      -> x
         doFix (SApp e es) = SApp (doFix e) (map doFix es)
         doFix x = x
@@ -71,14 +72,14 @@ where
                                                          I.insert patid (makeRefExpr pe) (makeGraph ((SH.Let ds e):ps))
                        SH.Let [] _ -> makeGraph ps --redundant
                        SH.Let ((SH.FunBind _):_) _ -> error "makeGraph error: FunBinds unsupported in Let"
-                       otherwise    -> makeGraph ps
+                       _           -> makeGraph ps
 
   makeGraph [] = I.empty
 
   invMakeExpr :: Expr -> SH.Expr Int
   invMakeExpr (SCons c) = SH.Cons c
   invMakeExpr (SLit l)  = SH.Lit l
-  invMakeExpr (SFun ar f) = SH.Var f
+  invMakeExpr (SFun _ f) = SH.Var f
   invMakeExpr (SHole v) = SH.Lit ("THIS IS A BUG - " ++ show v)
   invMakeExpr (SApp x xs) = SH.Apply (invMakeExpr x : map invMakeExpr xs)
 

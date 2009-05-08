@@ -1,7 +1,7 @@
 module Visualize
 where
 
-import qualified SimpleHaskell as SH
+--import qualified SimpleHaskell as SH
 import RewriteTypes
 
 import Text.PrettyPrint
@@ -10,7 +10,7 @@ import Control.Applicative
 
 import Data.Supply
 
-import Data.Graph.Inductive.Graphviz
+--import Data.Graph.Inductive.Graphviz
 import Data.Graph.Inductive.Tree
 import qualified Data.Graph.Inductive.Graph as IG
 import Data.IntMap hiding (map)
@@ -51,13 +51,13 @@ ppEdge (x, xs) =
 
 dQText :: String -> Doc
 dQText = doubleQuotes . text
-
+{-
 exprToGraph :: RewriteSystem -> Expr -> VisGraph
-exprToGraph = helper 0
+exprToGraph = helper (0 :: Int)
     where
       helper i rs e@(SApp f es) = (show i ++ genLabel rs f, map (\e -> show (i+1) ++ exprID e) es) : concatMap (helper (i+1) rs) es
       helper i rs e = [(show i ++ genLabel rs e, [])]
-
+-}
 genLabel :: RewriteSystem -> Expr -> String
 genLabel rs (SCons c) = show c ++ "|" ++ lkp rs c
 genLabel rs (SFun _ f) = show f ++ "|" ++ lkp rs f
@@ -66,6 +66,7 @@ genLabel rs (SHole h) = show h ++ "|" ++ lkp rs h
 genLabel rs (SRef r) = show r ++ "|" ++ lkp rs r
 genLabel rs (SApp e es)  = unwords $ (genLabel rs e) : map (genLabel rs) es
 
+lkp :: RewriteSystem -> Int -> [Char]
 lkp rs i = fromMaybe "UNDEFINED" $ lookup i (names rs)
 
 genName :: RewriteSystem -> Expr -> String
@@ -81,9 +82,8 @@ genID _ (SCons c) = c
 genID _ (SFun _ f) = f
 genID _ (SHole h) = h
 --genID _ (SRef r) = r
-genID ids e = genNewID ids e
+genID ids _ = supplyValue ids
 
-genNewID = const . supplyValue
 
 genLNode :: Supply Int -> RewriteSystem -> Expr -> IG.LNode String
 genLNode ids rs e = (genID ids e, genName rs e)
@@ -126,7 +126,7 @@ ppGr gr = text "digraph g" <+>
 --      (nodes, edges) = (f (labNodes, labEdges)) gr
       (nodes, edges) = (IG.labNodes gr, IG.labEdges gr)
       pnodes = map (\(x,y) -> dQText (show x) <+> (brackets $ text "label =" <+> dQText y)) nodes
-      pedges = map (\(x,y,z) -> dQText (show x) <+> text "->" <+> dQText (show y)) edges
+      pedges = map (\(x,y,_) -> dQText (show x) <+> text "->" <+> dQText (show y)) edges
 
 {-
 

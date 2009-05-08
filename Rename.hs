@@ -6,12 +6,8 @@ module Rename
 where
 
 import SimpleHaskell
-import Convert
 
 import Data.Supply
-
-import Language.Haskell.Syntax
-import Language.Haskell.Parser
 
 import Control.Monad.Fix
 
@@ -66,7 +62,7 @@ instance MonadFix (Result) where
 instance Functor Result where
 
     fmap f (Ok a) = Ok (f a)
-    fmap f (Hiba err) = Hiba err
+    fmap _ (Hiba err) = Hiba err
 ------------------------------------------------
 swap :: (a, b) -> (b, a)
 swap = \(x,y) -> (y,x)
@@ -103,7 +99,9 @@ distributeIds' [] _ = return (empty, I.empty, [[]])
 duplicates :: Ord a => [a] -> [a]
 duplicates = catMaybes . map (listToMaybe . tail) . group . sort
 
+mapFst :: (a -> c) -> (a,b) -> (c,b)
 mapFst f (a,b) = (f a, b)
+mapSnd :: (b -> c) -> (a,b) -> (a,c)
 mapSnd f (a,b) = (a, f b)
 
 -- | Substitutes String identifiers to Int ones in an 'Expr' structure.
@@ -112,8 +110,8 @@ renameExpr
     -> Expr String  -- ^ The expression
     -> UniqueIds          -- ^ An endless supply of unique Ints
     -> Result (Names, Expr Int) -- ^ If substitution is successful, returns the new assignments and the converted expression; otherwise returns an error.
-renameExpr b (Lit s) ids = return (I.empty, Lit s)
-renameExpr b (Var v) ids = case lookup v b of
+renameExpr _ (Lit s) _ = return (I.empty, Lit s)
+renameExpr b (Var v) _ = case lookup v b of
         Nothing         -> fail $ "renameExpr - not defined: " ++ v
         Just i          -> return (I.empty, Var i)
 renameExpr b (Apply l) ids = fmap (mapSnd Apply) $ renameExprs b l ids
@@ -122,7 +120,7 @@ renameExpr b (AsPat n p) ids = do
   (names, e) <- renameExpr b p ids
   return (names, AsPat i e)
 
-renameExpr b (Cons c) ids = case lookup c b of
+renameExpr b (Cons c) _ = case lookup c b of
                               Nothing -> fail $ "not defined: " ++ c
                               Just i  -> return (I.empty, Cons i)
 renameExpr b (Let l e) ids = do
@@ -202,7 +200,7 @@ renameFunAlt b (f, as, e) ids = do --elofeltetel: f mar at van nevezve, es b-ben
 
   (asb, as_names1, _) <- distributeIds' (map nameExpr as') ids1
 
-  (as_names2, as'') <- renameExprs (union asb b) as' ids1
+  (as_names2, _) <- renameExprs (union asb b) as' ids1
 
   let b' = unions [(namesToBinds as_names2), asb, b]
 
@@ -230,11 +228,11 @@ rename :: Binds -- ^ Predefined entities
        -> UniqueIds --  ^ An endless supply of Ints
        -> Result (Names, SimpModule Int) -- ^ If the substitution is successful, returns the assignments for the global identifiers and the converted 'SimpModule'; otherwise returns an error.
 rename predef decls ids = fmap g $ renameDecls predef decls ids
-  where g (a,b,c) = (b,c)
+  where g (_,b,c) = (b,c)
 
 rename' :: Binds -> SimpModule String -> UniqueIds -> Result (Names, SimpModule Int)
 rename' predef decls ids = do
-  (n, m) <- fmap (\(x,y,z) -> (y,z)) $ renameDecls predef decls ids
+  (n, m) <- fmap (\(_,y,z) -> (y,z)) $ renameDecls predef decls ids
   return (I.union (I.fromList $ map (\(x,y) -> (y,x)) (toList predef)) n, m)
 
 -- | Resubstitutes String identifiers in place of Int ones. This is useful to check correctness of 'rename'.
@@ -280,6 +278,6 @@ invRenameExpr names (Apply es) = do
  es' <- sequence (fmap (invRenameExpr names) es)
  return $ Apply es'
 
-invRenameExpr names (Lit s) = return (Lit s)
+invRenameExpr _ (Lit s) = return (Lit s)
 
 

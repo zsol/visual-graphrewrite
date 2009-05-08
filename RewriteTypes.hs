@@ -24,6 +24,7 @@ where
       }
                        deriving (Show)
 
+  defaultRS :: RewriteSystem
   defaultRS = RewriteSystem { rules = empty, names = empty }
 
 

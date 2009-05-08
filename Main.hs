@@ -2,12 +2,12 @@
 --import Paths_visual_graphrewrite (version)
 
 import Visualize
-import Rename
+
 import Convert
-import Rewrite
+import Rename
+--import Rewrite
 import RewriteApp
 import RewriteTypes
---import DataGraph
 import CmdLineOpts
 import DeltaFunctions
 
@@ -15,23 +15,18 @@ import qualified Graphics.UI.Gtk as G
 import qualified Graphics.UI.Gtk.Gdk.Events as G
 import qualified Graphics.Rendering.Cairo as C
 import qualified Graphics.Rendering.Cairo.SVG as C
-import qualified Graphics.UI.Gtk.Gdk.DrawWindow as G
-import qualified Graphics.UI.Gtk.Gdk.Gdk as G
 
 import Text.PrettyPrint
 import Data.Graph.Inductive
 
 import Language.Haskell.Parser -- parseModule
 import IPPrint --pprint
-import Language.Haskell.Syntax
 import System.Environment --getArgs
-import qualified Data.Version
 import Data.Supply
 
 import qualified Data.Map as D
 import qualified Data.List as L
 import qualified Data.IntMap as I
-import Data.Maybe ( fromMaybe )
 
 import System.Process
 import Control.Concurrent (forkIO, yield)
@@ -120,7 +115,7 @@ view :: Gr String String -> IO ()
 view gr = do
   i <- addToSession gr
 
-  c <- modifyMVar sessionRef $ \(Session win canvas svgs cur) -> do
+  c <- modifyMVar sessionRef $ \(Session win canvas svgs _cur) -> do
             updateCanvas (svgs !! i) canvas
             return ((Session win canvas svgs i), canvas)
 
@@ -172,26 +167,13 @@ myReadProcess cmd args input = do
 
     case ex of
      ExitSuccess   -> return output
-     ExitFailure r -> return output
-
-anyKeyExcept :: (Monad m) => String -> m a -> G.Event -> m Bool
-anyKeyExcept e m (G.Key {G.eventKeyName = key})
-    | any (`L.isPrefixOf` key) ignores = return True
-    | key == e                         = return True
-    | otherwise                        = m >> return True
-    where
-      ignores = ["Shift", "Control", "Alt", "Super", "Meta", "Hyper"]
-
-thisKey :: (Monad m) => String -> m a -> G.Event -> m Bool
-thisKey k m (G.Key {G.eventKeyName = key})
-    | k == key  = m >> return True
-    | otherwise = return True
+     ExitFailure _ -> return output
 
 handleKeys :: (Monad m, G.WidgetClass w) => D.Map String (w -> m a) -> w -> G.Event -> m Bool
 handleKeys m w (G.Key {G.eventKeyName = key}) = case D.lookup key m of
                                                   Just a -> (a w) >> return True
                                                   _      -> return True
---keyBindings :: D.Map String IO
+keyBindings :: (G.WidgetClass w) => D.Map String (w -> IO ())
 keyBindings = D.fromList [("q", G.widgetDestroy)
                          ,("space", const $ do
                              modifyMVar_ sessionRef (return . nextSVG)
@@ -201,7 +183,7 @@ keyBindings = D.fromList [("q", G.widgetDestroy)
                           )
                          ]
 
-
+sessionRef :: MVar a
 sessionRef = unsafePerformIO $ newEmptyMVar
 {-# NOINLINE sessionRef #-}
 

@@ -1,13 +1,14 @@
 
 name:                visual-graphrewrite
-version:             0.2
+version:             0.3
 synopsis:            Visualize the graph-rewrite steps of a Haskell program
-description:         Visualize the graph-rewrite steps of a Haskell program
+description:         Visualize the graph-rewrite steps of a Haskell program. Currently it only shows the right-hand-sides of rewrite rules (function alternatives).
 category:            Development
 license:             BSD3
 license-file:        LICENSE
 author:              Zsolt Dollenstein
 maintainer:          zsol@elte.hu
+homepage:            http://github.com/zsol/visual-graphrewrite/tree/master
 build-type:          Simple
 build-Depends:       base >= 4.1.0.0,
                      containers >= 0.2.0.0,
@@ -33,8 +34,17 @@ extra-source-files:  sample/egyszeru.hs,
                      sample/eratosthenes.hs
                      debug.hs
 
-executable:          rewrite
-main-is:             Parser.hs
-other-modules:       Rename, SimpleHaskell, Convert, RewriteApp, RewriteTypes, Rewrite, CmdLineOpts, DeltaFunctions, Visualize, Test
-ghc-options:
+executable:          visual-graphrewrite
+main-is:             Main.hs
+other-modules:       Rename, 
+                     SimpleHaskell, 
+                     Convert, 
+                     RewriteApp, 
+                     RewriteTypes, 
+                     Rewrite, 
+                     CmdLineOpts, 
+                     DeltaFunctions, 
+                     Visualize, 
+                     Test
+ghc-options:         -Wall -fno-warn-name-shadowing -fno-warn-incomplete-patterns
 

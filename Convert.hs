@@ -24,15 +24,15 @@ splitDecls l = partition isEnvRelated l
       isEnvRelated d = case d of
                          (HsDataDecl _ _ _ _ _ _) -> True
                          (HsTypeDecl _ _ _ _) -> True
-                         otherwise -> False
+                         _ -> False
 
 
 convModule :: HsModule -> SimpModule String
-convModule (HsModule _ m exp imp decl) = map convDecl (snd $ splitDecls decl)
+convModule (HsModule _ _m _exp _imp decl) = map convDecl (snd $ splitDecls decl)
 
 convDecl :: HsDecl -> Decl String
 convDecl (HsFunBind hsmatch) = FunBind (map convMatch hsmatch)
-convDecl (HsPatBind _ pat rhs decl) = PatBind (convPars pat) (convRhs rhs)
+convDecl (HsPatBind _ pat rhs _decl) = PatBind (convPars pat) (convRhs rhs)
 --convDecl (HsDataDecl _ _ (HsIdent a) _ _ _) = DataDecl a
 --convDecl (HsDataDecl _ _ (HsSymbol a) _ _ _) = DataDecl a
 
