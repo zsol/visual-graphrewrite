@@ -46,7 +46,9 @@ convPars (HsPApp qn l) = Apply $ (convQName qn) : (map convPars l)
 convPars (HsPParen p) = convPars p
 convPars (HsPAsPat n p) = AsPat (head $ nameExpr $ convName n) (convPars p)
 --convPars (HsPNeg n) --TBD
-
+convPars (HsPList []) = Cons "[]"
+convPars (HsPInfixApp p1 p2 p3) = convPars (HsPApp p2 [p1,p3])
+convPars p = error $ "convPars: " ++ show p
 
 convName :: HsName -> Expr String
 convName (HsIdent  n)
@@ -57,12 +59,13 @@ convName (HsSymbol n) = Var n --FIXME
 convQName :: HsQName -> Expr String
 convQName (UnQual n) = convName n
 --convQName Qual m n
---convQName Special spc
+convQName (Special HsCons) = Cons ":"
+convQName (Special HsListCon) = Cons "[]"
 
 
 convLit :: HsLiteral -> String
 convLit (HsChar n) = show n
-convLit (HsString n) = n
+convLit (HsString n) = show n
 convLit (HsInt n) = show n 
 convLit (HsFrac n) = show n
 convLit (HsCharPrim n) = show n
@@ -78,8 +81,10 @@ convExpr :: HsExp -> Expr String
 convExpr (HsVar qn) = convQName qn
 convExpr (HsApp exp1 exp2)  = Apply [convExpr exp1, convExpr exp2]
 convExpr (HsInfixApp exp1 (HsQVarOp qn) exp2) = Apply [convQName qn, convExpr exp1, convExpr exp2]
+convExpr (HsInfixApp exp1 (HsQConOp qn) exp2) = Apply [convQName qn, convExpr exp1, convExpr exp2]
 convExpr (HsLit literal)    = Lit (convLit literal)
 convExpr (HsLet decls exp)  = Let (map convDecl decls) (convExpr exp)
 convExpr (HsCon (UnQual (HsIdent con))) = Cons con
 convExpr (HsParen exp) = convExpr exp
+convExpr (HsList []) = Cons "[]"
 convExpr a = Lit ("UNIMPLEMENTED: " ++ show a)

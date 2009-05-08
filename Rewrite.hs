@@ -1,7 +1,9 @@
 
 module Rewrite
-    ( rewriteHNF, rewriteStep, rewriteStep' )
-where
+    ( rewriteHNF
+    , rewriteStep
+    , rewriteStep' 
+    ) where
 
   import RewriteTypes
 --  import qualified SimpleHaskell as SH

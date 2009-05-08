@@ -18,10 +18,10 @@ import Foreign
 import Data.Maybe
 import Data.Graph.Inductive.Graphviz
 
-predef = deltaNames
+predef = Prelude.map snd deltaNames
 
 sup = unsafePerformIO newEnumSupply :: Supply Int
-file = unsafePerformIO $ readFile "sample/eratosthenes.hs"
+file = unsafePerformIO $ readFile "sample/SieveOfEratosthenes.hs"
 (ids, ids2, ids3) = split3 sup
 
 (Ok (predefBinds,_,_)) = distributeIds predef ids2

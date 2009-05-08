@@ -51,7 +51,7 @@ instance NFData Session where
     rnf x = x `seq` ()
 
 predef :: [String]
-predef = deltaNames
+predef = map snd deltaNames
 
 main :: IO ()
 main = do

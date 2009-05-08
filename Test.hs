@@ -1,11 +1,10 @@
-
---module Test  where
+module Test  where
 
 import Rewrite
 import RewriteTypes hiding (PointedGraph)
 
 import System.IO.Unsafe
-import Test.ChasingBottoms.TimeOut
+--import Test.ChasingBottoms.TimeOut
 import Test.LazySmallCheck
 import qualified Data.IntMap as IM
 import Data.List
@@ -26,7 +25,7 @@ infix 1 <=>
 
 sameSet :: Ord a => [a] -> [a] -> Bool
 sameSet a b = sort a == sort b
-
+{-
 timeOut2s :: a -> IO a
 timeOut2s x = do
     r <- timeOut 2 (return x)
@@ -34,7 +33,7 @@ timeOut2s x = do
         NonTermination      -> error "nontermination"
         Value x             -> return x
         Exception e         -> error (show e)
-
+-}
 --------------------------- Serial instances
 
 instance Serial Expr where
@@ -123,8 +122,8 @@ allReferenceDefined e g = all (`IM.member` g) (collectRefs e ++ concatMap collec
 
 ---------------------------
 
-main :: IO ()
-main = do
+allTests :: IO ()
+allTests = do
 
     let 
         p (SCons _)  = True

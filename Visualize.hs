@@ -1,16 +1,14 @@
 module Visualize
 where
 
---import qualified SimpleHaskell as SH
+-- TODO: use the graphviz package
+
+import DeltaFunctions 
 import RewriteTypes
 
 import Text.PrettyPrint
-
 import Control.Applicative
-
 import Data.Supply
-
---import Data.Graph.Inductive.Graphviz
 import Data.Graph.Inductive.Tree
 import qualified Data.Graph.Inductive.Graph as IG
 import Data.IntMap hiding (map)
@@ -18,7 +16,6 @@ import Data.Maybe
 import Data.List (findIndex)
 import Prelude hiding (lookup)
 
-type VisGraph = [(String, [String])]
 
 gStyle :: String
 gStyle = unlines
@@ -28,60 +25,56 @@ gStyle = unlines
          ]
 
 
-ppGraph :: VisGraph -> Doc
-ppGraph xs = text "digraph g" <+>
-             (braces $
-                    text gStyle
-                      $+$ nest indent (vcat . fmap ppEdge $ xs))
-    where
-      indent = 4
-
-
-ppEdge :: (String, [String]) -> Doc
-ppEdge (x, xs) =
-    (i x) <+> (brackets $ text "label=" <> n x)
-    $$
-    vcat (map (((i x) <+> (text "->") <+>) . dQText) xs)
-        where
-          f = fromMaybe . const (-1) <*> findIndex (== '|')
-          n = dQText . ((+1) . f >>= drop)
-          i = dQText . (takeWhile (/= '|'))
---    (dQText x) <+> (text "->")
---                   <+> (braces . hcat . punctuate comma . fmap dQText $ xs)
-
 dQText :: String -> Doc
-dQText = doubleQuotes . text
-{-
-exprToGraph :: RewriteSystem -> Expr -> VisGraph
-exprToGraph = helper (0 :: Int)
-    where
-      helper i rs e@(SApp f es) = (show i ++ genLabel rs f, map (\e -> show (i+1) ++ exprID e) es) : concatMap (helper (i+1) rs) es
-      helper i rs e = [(show i ++ genLabel rs e, [])]
--}
-genLabel :: RewriteSystem -> Expr -> String
-genLabel rs (SCons c) = show c ++ "|" ++ lkp rs c
-genLabel rs (SFun _ f) = show f ++ "|" ++ lkp rs f
-genLabel _ (SLit l) = l
-genLabel rs (SHole h) = show h ++ "|" ++ lkp rs h
-genLabel rs (SRef r) = show r ++ "|" ++ lkp rs r
-genLabel rs (SApp e es)  = unwords $ (genLabel rs e) : map (genLabel rs) es
+dQText = doubleQuotes . text . concatMap quoteChar
+ where
+    quoteChar :: Char -> String
+    quoteChar '\"' = "\\\""
+    quoteChar c = [c]
 
-lkp :: RewriteSystem -> Int -> [Char]
-lkp rs i = fromMaybe "UNDEFINED" $ lookup i (names rs)
+lookupName :: RewriteSystem -> Int -> [Char]
+lookupName rs i = fromMaybe "UNDEFINED" $ lookup i (names rs)
 
+-- | RewriteSystem needed for identifier names.
 genName :: RewriteSystem -> Expr -> String
-genName rs (SCons c) = lkp rs c
-genName rs (SFun _ f) = lkp rs f
-genName rs (SHole h) = lkp rs h
-genName rs (SRef r) = lkp rs r
-genName rs (SApp e es) = unwords $ (genName rs e) : map (genName rs) es
-genName _ (SLit l) = l
+genName rs = gName (-1)  where
+
+    gName :: Int{-outerPrec-} -> Expr -> String
+    gName _ (SCons c) = lookupName rs c
+    gName _ (SFun _ f) = lookupName rs f
+    gName _ (SHole h) = lookupName rs h
+    gName _ (SRef r) = lookupName rs r
+    gName _ (SLit l) = l
+    gName p e@(SApp _ _) = rearrange ip $ fn : map (gName $ precedence ip) xs  where
+
+      precedence :: Prec -> Int
+      precedence (Infixr i) = i
+      precedence Prefix = 10
+
+      rearrange Prefix l = addParents (p>9) $ unwords l
+      rearrange _ [a,b,c] = addParents (p>9) $ unwords [b,a,c]
+      rearrange _ [a,b] = addParents True $ unwords [b,a]
+      rearrange _ [a] = addParents True a
+
+      ip = head $ [ip | (ip, n)<-deltaNames, n == fn] ++ [Prefix]
+      fn = gName 10 f
+
+      (f, xs) = flattenSApp e
+
+      flattenSApp :: Expr -> (Expr, [Expr])  
+      flattenSApp (SApp y ys) = (f, xs ++ ys)    where (f, xs) = flattenSApp y
+      flattenSApp x = (x, [])
+
+addParents :: Bool -> String -> String
+addParents True s = "(" ++ s ++ ")"
+addParents False s = s
+
+
 
 genID :: Supply Int -> Expr -> Int
 genID _ (SCons c) = c
 genID _ (SFun _ f) = f
 genID _ (SHole h) = h
---genID _ (SRef r) = r
 genID ids _ = supplyValue ids
 
 

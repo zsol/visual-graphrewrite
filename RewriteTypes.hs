@@ -5,7 +5,8 @@ where
   import Data.IntMap
   import Prelude hiding (lookup)
 
-  type Arity = Int -- ^ Arity is a non-negative integer which represents the number of arguments a function can take.
+  -- | Arity is a non-negative integer which represents the number of arguments a function can take.
+  type Arity = Int 
 
   -- | An expression.
   data Expr
@@ -44,8 +45,7 @@ where
 
   -- | This function tries to eliminate SApp structures nested in the first argument.
   flattenSApp :: Expr -> Graph ->
-    ( Expr          -- ^ Symbol to be applied. Can only be SFun, SCons or SLit.
-    , [Expr])       -- ^ Arguments. In case of SFun, this can not be empty, otherwise this should be empty.
+    ( Expr, [Expr])          -- ^ Symbol to be applied. Can only be SFun, SCons or SLit. & Arguments. In case of SFun, this can not be empty, otherwise this should be empty.
   flattenSApp (SApp x xs) g
     = case deref x g of
       SApp y ys  -> flattenSApp (SApp y (ys ++ xs)) g

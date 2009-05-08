@@ -1,0 +1,30 @@
+
+This tool intended to help the graph rewriting process of Haskell expressions.
+
+This is the initial/experimental version.
+Usage:
+ ./rewrite <Haskell source file>
+
+- The program reads the source, which can contain only simple function definitions.
+  The following definitions may be used: (++), div, mod, eqInt, not, Cons, Nil, succ, True, False, sin.
+- The source is converted into a graph rewrite system.
+- The program opens a window. 
+  Press space to see the right-hand-sides of the graph rewrite rules.
+
+Short term plans (this version is expected at the end of May):
+- Show the graph rewrite process instead of the rhs of rewrite rules.
+- Allow tuples and lists.
+- Allow data declarations.
+- Allow more built-in functions.
+- User defined start expression for the graph reduction.
+- To be usable as a library.
+
+Plans for the final version:
+- Allow type classes.
+- Allow module imports.
+- Read the Prelude.
+- Extend to work with any Haskell 98 source file.
+- Control the graph rewrite process (control over which functions are atomic).
+- Control the visualization of the graph (some parts will be folded).
+
+
