@@ -1,4 +1,4 @@
-module DeltaFunctions
+module GraphRewrite.Internal.DeltaFunctions
 where
 
 data Prec

@@ -1,18 +1,18 @@
 
-import SimpleHaskell
+import GraphRewrite.Internal.SimpleHaskell
 import IPPrint
 import Language.Haskell.Syntax
 import Language.Haskell.Parser
-import Rename
-import Convert
+import GraphRewrite.Internal.Rename
+import GraphRewrite.Internal.Convert
 import Data.Supply
 import qualified Data.IntMap as I
 import Data.Map
-import RewriteApp
-import RewriteTypes
-import Rewrite
-import DeltaFunctions
-import Visualize
+import GraphRewrite.Internal.RewriteApp
+import GraphRewrite.Internal.RewriteTypes
+import GraphRewrite.Internal.Rewrite
+import GraphRewrite.Internal.DeltaFunctions
+import GraphRewrite.Main.Visualize
 import Prelude hiding (exp)
 import Foreign
 import Data.Maybe

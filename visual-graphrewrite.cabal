@@ -8,7 +8,7 @@ license:             BSD3
 license-file:        LICENSE
 author:              Zsolt Dollenstein
 maintainer:          zsol@elte.hu
-homepage:            http://github.com/zsol/visual-graphrewrite/tree/master
+homepage:            http://github.com/zsol/visual-graphrewrite/
 build-type:          Simple
 build-Depends:       base >= 4.1.0.0,
                      containers >= 0.2.0.0,
@@ -25,26 +25,27 @@ build-Depends:       base >= 4.1.0.0,
                      gtk >= 0.10.0,
                      svgcairo >= 0.10.0,
                      cairo >= 0.10.0
-build-type:          Simple
 extensions:          PatternGuards
 extra-source-files:  sample/egyszeru.hs,
                      sample/pl.hs,
                      sample/simple.hs,
                      sample/fsimple.hs
                      sample/eratosthenes.hs
-                     debug.hs
+                     Debug.hs
 
 executable:          visual-graphrewrite
-main-is:             Main.hs
-other-modules:       Rename, 
-                     SimpleHaskell, 
-                     Convert, 
-                     RewriteApp, 
-                     RewriteTypes, 
-                     Rewrite, 
-                     CmdLineOpts, 
-                     DeltaFunctions, 
-                     Visualize, 
-                     Test
+main-is:             GraphRewrite/Main.hs
+other-modules:       GraphRewrite,
+                     GraphRewrite.Internal.Rename,
+                     GraphRewrite.Internal.SimpleHaskell,
+                     GraphRewrite.Internal.Convert,
+                     GraphRewrite.Internal.RewriteApp,
+                     GraphRewrite.Internal.RewriteTypes,
+                     GraphRewrite.Internal.Rewrite,
+                     GraphRewrite.Internal.DeltaFunctions,
+                     GraphRewrite.Internal.Test,
+                     GraphRewrite.Main.CmdLineOpts,
+                     GraphRewrite.Main.Visualize
+
 ghc-options:         -Wall -fno-warn-name-shadowing -fno-warn-incomplete-patterns
 

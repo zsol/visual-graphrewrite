@@ -1,7 +1,7 @@
 {- |
    This is our representation of a Haskell module.
 -}
-module SimpleHaskell
+module GraphRewrite.Internal.SimpleHaskell
 where
   -- | A Simple module consists of zero or more declarations.
   type SimpModule a = [Decl a]
@@ -14,18 +14,21 @@ where
         deriving (Show, Eq)
 
   -- | A function alternative is made up by the name of the function, the list of arguments and the expression.
-  type FunAlt a = (a, [Patt a], Expr a) 
+  type FunAlt a = (a, [Patt a], Expr a)
 
   -- | These things are considered an expression.
-  data Expr a 
+  data Expr a
       = Let [Decl a] (Expr a) -- ^ A let expression consists of a list of declarations which's scope is limited to the following expression.
       | Var a -- ^ This is a simple variable identified by the type 'a'.
       | Cons a  -- ^ e.g: Left, Just, Nothing
       | Apply [Expr a] -- ^ Expressions can be applied to each other with this constructor.
       | Lit String -- ^ This is a simple string literal.
       | AsPat a (Patt a) -- ^ This is an alias pattern represented by '@' in Haskell. Should only be inside a Pattern.
-	deriving (Show, Eq)
-  
+        deriving (Show, Eq)
+
+  -- | Convenience alias for an expression
+  type SExpr a = Expr a
+
   -- | A pattern is essentially an expression with the exception that it can not be a Let constructor.
   type Patt a = Expr a
 
@@ -55,7 +58,7 @@ where
 
 
 {-
-  data Patt a 
+  data Patt a
      = Cons a [Patt a]
      | PVar a -- ^ This is a simple variable identified by the type 'a'.
      | PLit String -- ^ This is a simple string literal.

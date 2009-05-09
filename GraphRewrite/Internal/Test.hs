@@ -1,7 +1,7 @@
-module Test  where
+module GraphRewrite.Internal.Test  where
 
-import Rewrite
-import RewriteTypes hiding (PointedGraph)
+import GraphRewrite.Internal.Rewrite
+import GraphRewrite.Internal.RewriteTypes hiding (PointedGraph)
 
 import System.IO.Unsafe
 --import Test.ChasingBottoms.TimeOut
@@ -11,7 +11,7 @@ import Data.List
 
 {-
 Serial instance needed:
-    Graph  
+    Graph
     RewriteSystem
 
 -}
@@ -37,27 +37,27 @@ timeOut2s x = do
 --------------------------- Serial instances
 
 instance Serial Expr where
-    series 
-        =  cons1 SCons 
-        \/ cons2 SFun 
-        \/ cons1 SLit 
-        \/ cons1 SHole 
-        \/ cons1 (SRef . natToInt) 
+    series
+        =  cons1 SCons
+        \/ cons2 SFun
+        \/ cons1 SLit
+        \/ cons1 SHole
+        \/ cons1 (SRef . natToInt)
         \/ cons2 SApp
 
-newtype DataExpr 
+newtype DataExpr
     = DataExpr { unDataExpr :: Expr }
         deriving Show
 
 instance Serial DataExpr where
-    series 
-        =  cons1 (DataExpr . SCons) 
-        \/ cons2 (\x -> DataExpr . SFun x) 
+    series
+        =  cons1 (DataExpr . SCons)
+        \/ cons2 (\x -> DataExpr . SFun x)
         \/ cons1 (DataExpr . SLit)
         \/ cons1 (DataExpr . SRef . natToInt)
         \/ cons2 (\(DataExpr x) ys -> DataExpr $ SApp x $ map unDataExpr ys)
 
-newtype DataGraph 
+newtype DataGraph
     = DataGraph Graph
         deriving Show
 
@@ -88,7 +88,7 @@ natToInt (Succ n) = 1 + natToInt n
 
 ---------------------------------
 
-data PointedGraph 
+data PointedGraph
     = PGraph Expr Graph
         deriving (Show)
 
@@ -113,7 +113,7 @@ ref (SRef _) = True
 ref _        = False
 
 collectRefs :: Expr -> [Int]
-collectRefs (SRef i)    = [i] 
+collectRefs (SRef i)    = [i]
 collectRefs (SApp e es) = collectRefs e ++ concatMap collectRefs es
 collectRefs _           = []
 
@@ -125,7 +125,7 @@ allReferenceDefined e g = all (`IM.member` g) (collectRefs e ++ concatMap collec
 allTests :: IO ()
 allTests = do
 
-    let 
+    let
         p (SCons _)  = True
         p (SFun _ _) = True
         p (SLit _)   = True
@@ -137,8 +137,8 @@ allTests = do
 {-
     sm $ interpreter "start = f True; f x = x" == "True"
 
-    sm $ \s1 s2 s3 ->   s1 /= s2  
-            ==>  freeVars (s1 ++ " = 3;" ++ s2 ++ " " ++ s3 ++ " = " ++ s3) 
+    sm $ \s1 s2 s3 ->   s1 /= s2
+            ==>  freeVars (s1 ++ " = 3;" ++ s2 ++ " " ++ s3 ++ " = " ++ s3)
                     `sameSet` [s1, s2]
 -}
 

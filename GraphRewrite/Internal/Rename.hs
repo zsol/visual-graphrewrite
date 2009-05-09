@@ -2,10 +2,10 @@
   This module contains functions for assigning integer identifiers to lexical elements of
   a Haskell source file. This process is called renaming.
 -}
-module Rename
+module GraphRewrite.Internal.Rename
 where
 
-import SimpleHaskell
+import GraphRewrite.Internal.SimpleHaskell
 
 import Data.Supply
 

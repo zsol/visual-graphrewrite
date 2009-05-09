@@ -1,19 +1,17 @@
-module Visualize
+module GraphRewrite.Main.Visualize
 where
 
 -- TODO: use the graphviz package
 
-import DeltaFunctions 
-import RewriteTypes
+import GraphRewrite.Internal.DeltaFunctions
+import GraphRewrite.Internal.RewriteTypes
 
 import Text.PrettyPrint
-import Control.Applicative
 import Data.Supply
 import Data.Graph.Inductive.Tree
 import qualified Data.Graph.Inductive.Graph as IG
 import Data.IntMap hiding (map)
 import Data.Maybe
-import Data.List (findIndex)
 import Prelude hiding (lookup)
 
 
@@ -61,7 +59,7 @@ genName rs = gName (-1)  where
 
       (f, xs) = flattenSApp e
 
-      flattenSApp :: Expr -> (Expr, [Expr])  
+      flattenSApp :: Expr -> (Expr, [Expr])
       flattenSApp (SApp y ys) = (f, xs ++ ys)    where (f, xs) = flattenSApp y
       flattenSApp x = (x, [])
 

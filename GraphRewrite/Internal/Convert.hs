@@ -3,13 +3,14 @@
    to our own representation of a Haskell module called 'SimpleHaskell'.
 -}
 
-module Convert
+module GraphRewrite.Internal.Convert
 where
+
+import GraphRewrite.Internal.SimpleHaskell
 
 import Data.List
 import Data.Char
 
-import SimpleHaskell
 import Language.Haskell.Syntax
 import Language.Haskell.Parser
 
@@ -66,7 +67,7 @@ convQName (Special HsListCon) = Cons "[]"
 convLit :: HsLiteral -> String
 convLit (HsChar n) = show n
 convLit (HsString n) = show n
-convLit (HsInt n) = show n 
+convLit (HsInt n) = show n
 convLit (HsFrac n) = show n
 convLit (HsCharPrim n) = show n
 convLit (HsStringPrim n) = show n

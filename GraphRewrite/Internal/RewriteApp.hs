@@ -1,5 +1,5 @@
 
-module RewriteApp
+module GraphRewrite.Internal.RewriteApp
     ( makeRewriteRules, invMakeExpr, makeRewriteSystem )
 where
   import Prelude hiding (exp)
@@ -7,8 +7,8 @@ where
   import qualified Data.IntMap as I
   import qualified Data.List as L
 
-  import RewriteTypes
-  import qualified SimpleHaskell as SH
+  import GraphRewrite.Internal.RewriteTypes
+  import qualified GraphRewrite.Internal.SimpleHaskell as SH
 
   makeRewriteSystem :: SH.SimpModule Int -> I.IntMap String -> RewriteSystem
   makeRewriteSystem m nms = (makeRewriteRules m) { names = nms }
@@ -46,7 +46,7 @@ where
         la = liftApp $ makeExpr h
         liftApp (SApp (SFun a f) l) = (SFun (a + (length t)) f, l ++ (map makeExpr t))
         liftApp (SApp (SCons c) l) = (SCons c, l ++ (map makeExpr t))
-  
+
   makeRefExpr :: SH.Expr Int -> Expr
   makeRefExpr = holeToRef . makeExpr
       where

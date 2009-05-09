@@ -1,4 +1,4 @@
-module CmdLineOpts 
+module GraphRewrite.Main.CmdLineOpts
 where
 
 import System.Console.GetOpt

@@ -1,16 +1,14 @@
 
-module Rewrite
+module GraphRewrite.Internal.Rewrite
     ( rewriteHNF
     , rewriteStep
-    , rewriteStep' 
+    , rewriteStep'
     ) where
 
-  import RewriteTypes
---  import qualified SimpleHaskell as SH
-  import DeltaFunctions
+  import GraphRewrite.Internal.RewriteTypes
+  import GraphRewrite.Internal.DeltaFunctions
 
   import qualified Data.IntMap as I
---  import qualified Data.List as L
 
   import Data.Maybe
   import Prelude hiding (exp)

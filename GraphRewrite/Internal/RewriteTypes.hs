@@ -1,12 +1,12 @@
 -- | Types which are specific to a graph rewrite system.
-module RewriteTypes
+module GraphRewrite.Internal.RewriteTypes
 where
 
   import Data.IntMap
   import Prelude hiding (lookup)
 
   -- | Arity is a non-negative integer which represents the number of arguments a function can take.
-  type Arity = Int 
+  type Arity = Int
 
   -- | An expression.
   data Expr

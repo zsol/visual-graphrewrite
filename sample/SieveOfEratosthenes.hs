@@ -1,5 +1,5 @@
-data List a = Nil | Cons a (List a)
-              deriving (Show)
+--data List a = Nil | Cons a (List a)
+--              deriving (Show)
 
 --result :: String
 result = showIntList primes
@@ -19,8 +19,8 @@ showInt 8 = "8"
 showInt 9 = "9"
 showInt n = (++) (showInt (div n 10)) (showInt (mod n 10))
 
-showIntList Nil = ""
-showIntList (Cons h t) = (++) (showInt h) ((++) ", " (showIntList t))
+showIntList [] = ""
+showIntList (h:t) = (++) (showInt h) ((++) ", " (showIntList t))
 
 --primesbelow :: Int -> String
 --primesbelow n = showIntList (eratos (enumFT 2 n))
@@ -29,8 +29,8 @@ showIntList (Cons h t) = (++) (showInt h) ((++) ", " (showIntList t))
 f h x = not ((eqInt) (mod x h) 0)
 
 --eratos :: [Int] -> [Int]
-eratos (Cons h t) = Cons h (fil (f h) (eratos t))
-eratos Nil = Nil
+eratos (h:t) = h : (fil (f h) (eratos t))
+eratos [] = []
 
 --enumFT :: Int -> Int -> [Int]
 --enumFT f t
@@ -38,14 +38,14 @@ eratos Nil = Nil
 --    | otherwise = Cons f (enumFT ((+) f 1) t)
 
 --enumF :: Int -> [Int]
-enumF f = Cons f (enumF (succ f))
+enumF f = f : (enumF (succ f))
 
 --primes :: [Int]
 primes = eratos (enumF 2)
 
 --fil :: (a -> Bool) -> [a] -> [a]
-fil v Nil = Nil                       -- @ (@ fil v) Nil
-fil p l@(Cons h t) = fil' p l (p h)
+fil v [] = []                      -- @ (@ fil v) Nil
+fil p l@(h:t) = fil' p l (p h)
 
 {-
 type Graph = (Int, IntMap X)
@@ -68,8 +68,8 @@ g4 = (0, fromList   [(0, App (Ref 1) (Ref 5)
 
 -}
 
-fil' p (Cons h t) True = Cons h (fil p t)
-fil' p (Cons h t) False = fil p t
+fil' p (h:t) True = h : fil p t
+fil' p (h:t) False = fil p t
 
 
 {-
