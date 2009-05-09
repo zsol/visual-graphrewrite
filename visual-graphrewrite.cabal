@@ -26,12 +26,8 @@ build-Depends:       base >= 4.1.0.0,
                      svgcairo >= 0.10.0,
                      cairo >= 0.10.0
 extensions:          PatternGuards
-extra-source-files:  sample/egyszeru.hs,
-                     sample/pl.hs,
-                     sample/simple.hs,
-                     sample/fsimple.hs
-                     sample/eratosthenes.hs
-                     Debug.hs
+extra-source-files:  sample/*.hs
+                     GraphRewrite/Debug.hs
 
 executable:          visual-graphrewrite
 main-is:             GraphRewrite/Main.hs
