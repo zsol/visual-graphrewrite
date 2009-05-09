@@ -1,6 +1,5 @@
 
---import Paths_visual_graphrewrite (version)
-
+import Paths_visual_graphrewrite (version)
 
 import GraphRewrite.Internal.Convert
 import GraphRewrite.Internal.Rename
@@ -17,12 +16,13 @@ import qualified Graphics.Rendering.Cairo as C
 import qualified Graphics.Rendering.Cairo.SVG as C
 
 import Text.PrettyPrint
-import Data.Graph.Inductive
+import Data.Graph.Inductive hiding (version)
 
 import Language.Haskell.Parser -- parseModule
 import IPPrint --pprint
 import System.Environment --getArgs
 import Data.Supply
+import qualified Data.Version
 
 import qualified Data.Map as D
 import qualified Data.IntMap as I
@@ -59,7 +59,7 @@ main = do
   args <- getArgs
   options <- parseOptions args
   if showVersion options
-    then putStrLn $ "version " -- ++ Data.Version.showVersion version
+    then putStrLn $ "version " ++ Data.Version.showVersion version
     else do
       tmp <- readInput (inputFile options)
       let mod = parseModule tmp
