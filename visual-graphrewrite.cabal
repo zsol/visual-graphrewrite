@@ -10,6 +10,7 @@ author:              Zsolt Dollenstein
 maintainer:          zsol@elte.hu
 homepage:            http://github.com/zsol/visual-graphrewrite/
 build-type:          Simple
+cabal-version:       >= 1.6
 build-Depends:       base >= 4.1.0.0,
                      containers >= 0.2.0.0,
                      value-supply >= 0.5,
