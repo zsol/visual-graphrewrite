@@ -1,11 +1,7 @@
 
 import Paths_visual_graphrewrite (version)
 
-import GraphRewrite.Internal.Convert
-import GraphRewrite.Internal.Rename
-import GraphRewrite.Internal.RewriteApp
-import GraphRewrite.Internal.RewriteTypes
-import GraphRewrite.Internal.DeltaFunctions
+import GraphRewrite
 import GraphRewrite.Main.CmdLineOpts
 import GraphRewrite.Main.Visualize
 
@@ -63,26 +59,40 @@ main = do
     else do
       tmp <- readInput (inputFile options)
       let mod = parseModule tmp
-    --pprint $ mod
-    --putStrLn "-------------------------------------------------------------------------"
       pprint $ convParse $ mod
       ids <- newEnumSupply
       let (ids1, ids2, ids3) = split3 ids
       let (Ok (predefBinds,_,_)) = distributeIds predef ids2
-      let (Ok (n,m)) = rename' predefBinds (convParse $parseModule tmp) ids1
-      let rs = makeRewriteSystem m n
-      pprint rs
-      let pgs = map (\x -> (exp x, graph x)) $ concat $ map snd $ I.toList $ rules rs
-      let grs = map (\(x,y) -> graphToGr x rs y) (zip (split ids3) pgs)
-      G.timeoutAddFull (yield >> return True) G.priorityDefaultIdle 50 -- magic, do not touch
-      mapM_ addToSession grs
+      case rename' predefBinds (convParse $parseModule tmp) ids1 of
+        Hiba f   -> pprint $ "Error: " ++ f >> return ()
+        Ok (n,m) -> do
+           let rs = makeRewriteSystem m n
+           pprint rs
+           G.timeoutAddFull (yield >> return True) G.priorityDefaultIdle 50 -- magic, do not touch
+           case mainTerm options of
+             Nothing -> addRuleDefs rs ids3
+             Just tm -> startRewriting tm rs ids3
 
-{-      case rename' predefBinds (convParse $ parseModule tmp) ids1 of
-        Ok (n,m) -> pprint m >> pprint n >> pprint (invRename n m) >>
-                   pprint (makeRewriteRules m)
-        Hiba f   -> pprint$ "HIBA: " ++ f
--}
+startRewriting :: String -> RewriteSystem -> Supply Int -> IO ()
+startRewriting term rs ids = case I.toList (I.filter (== term) (names rs)) of
+    [(tid, _)] -> case I.lookup tid (rules rs) of
+                   Just [r] -> do
+                     addToSession (graphToGr ids1 rs (exp r, graph r))
+                     mapM_ addToSession (map (\(x,y) -> graphToGr x rs y) (zip (split ids2) (rewriteSteps rs (exp r) (graph r))))
 
+                   Just _ -> error $ "Ambiguous reference to term: " ++ term ++ ". Make sure there is only one rule associated with it in the source file. (Don't you want to examine another term?)"
+                   Nothing -> error $ "No such term `" ++ term ++ "' found in the source file, it is probably defined elsewhere. (Did you want to examine a delta function?)"
+    [] -> error $ "Absolutely nothing found about this term: " ++ term ++ ". You probably have a typo somewhere."
+    _  -> error $ "Ambiguous reference to term: " ++ term ++ ". This shouldn't happen if your source file compiles with a Haskell compiler."
+    where
+      (ids1, ids2) = split2 ids
+
+
+addRuleDefs :: RewriteSystem -> Supply Int -> IO ()
+addRuleDefs rs ids = mapM_ addToSession grs
+    where
+      grs = map (\(x,y) -> graphToGr x rs y) (zip (split ids) pgs)
+      pgs = map (\x -> (exp x, graph x)) $ concat $ map snd $ I.toList $ rules rs
 
 readInput :: Maybe String -> IO String
 readInput Nothing = getContents
@@ -179,8 +189,8 @@ handleKeys :: (Monad m, G.WidgetClass w) => D.Map String (w -> m a) -> w -> G.Ev
 handleKeys m w (G.Key {G.eventKeyName = key}) = case D.lookup key m of
                                                   Just a -> (a w) >> return True
                                                   _      -> return True
-keyBindings :: (G.WidgetClass w) => D.Map String (w -> IO ())
-keyBindings = D.fromList [("q", G.widgetDestroy)
+basicKeyBindings :: (G.WidgetClass w) => D.Map String (w -> IO ())
+basicKeyBindings = D.fromList [("q", G.widgetDestroy)
                          ,("space", const $ do
                              modifyMVar_ sessionRef (return . nextSVG)
                              withMVar sessionRef $ \(Session _ c svgs cur) ->
@@ -200,7 +210,12 @@ sessionRef = unsafePerformIO $ newEmptyMVar
 {-# NOINLINE sessionRef #-}
 
 newSession :: IO ()
-newSession = do
+newSession = newSessionWith basicKeyBindings
+
+--does not compile with this:
+--             :: (G.WidgetClass w) => D.Map String (w -> IO ()) -> IO ()
+newSessionWith :: D.Map String (G.Window -> IO ()) -> IO ()
+newSessionWith keyBindings = do
   G.unsafeInitGUIForThreadedRTS
   window <- G.windowNew
   canvas <- G.drawingAreaNew

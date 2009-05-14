@@ -9,6 +9,7 @@ data Options = Options
     , inputFile     :: Maybe String     -- ^ Nothing: stdin
     , outputFile    :: Maybe String     -- ^ Nothing: stdout
     , isVerbose     :: Bool
+    , mainTerm      :: Maybe String     -- ^ Name of the main term on which to perform rewriting (example: result)
     }
 
 defaultOptions :: Options
@@ -17,16 +18,18 @@ defaultOptions = Options
     , inputFile     = Nothing
     , outputFile    = Nothing
     , isVerbose     = False
+    , mainTerm      = Nothing
     }
 
 ----------------------------------- possible options
 
 options :: [OptDescr (Options -> Options)]
 options =
-    [ Option ['v']     ["verbose"] (NoArg (\r -> r {isVerbose   = True}))       "verbose output on stderr"
-    , Option ['V','?'] ["version"] (NoArg (\r -> r {showVersion = True}))       "show version number"
+    [ Option ['v']     ["verbose"] (NoArg  (\r -> r {isVerbose   = True}))       "verbose output on stderr"
+    , Option ['V','?'] ["version"] (NoArg  (\r -> r {showVersion = True}))       "show version number"
     , Option ['o']     ["output"]  (ReqArg (\f r -> r {outputFile = Just f}) "FILE")  "output FILE"
     , Option ['i']     ["input"]   (ReqArg (\f r -> r {inputFile  = Just f}) "FILE")  "input FILE"
+    , Option ['m']     ["main"]    (ReqArg (\m r -> r {mainTerm = Just m}) "TERM") "main term on which to perform rewriting"
     ]
 
 ----------------------------------- parse options
@@ -44,14 +47,3 @@ parseOptions argv = do
                         o'' = foldl (flip addInput) o' n
                     in return o''
       (_,_,errs) -> error (concat errs ++ usageInfo header options)
-
-
-{-
-id              :: (a -> b) -> a -> b
-flip id         :: a -> (a -> b) -> b
-foldl (flip id) :: b -> [b -> b] -> b
-
-  foldl (flip id) 3 [(+1),(*2)] == 8
--}
-
------------------------------------

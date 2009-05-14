@@ -3,6 +3,7 @@ module GraphRewrite.Internal.Rewrite
     ( rewriteHNF
     , rewriteStep
     , rewriteStep'
+    , rewriteSteps
     ) where
 
   import GraphRewrite.Internal.RewriteTypes
@@ -36,6 +37,10 @@ module GraphRewrite.Internal.Rewrite
   rewriteStep' :: RewriteSystem -> Expr -> Graph -> PointedGraph
   rewriteStep' rs e g = fromMaybe (e, g) $ rewriteStep rs e g
 
+  rewriteSteps :: RewriteSystem -> Expr -> Graph -> [PointedGraph]
+  rewriteSteps rs e g = case rewriteStep rs e g of
+                          Nothing      -> []
+                          Just p@(e,g) -> p : rewriteSteps rs e g
 
   -- | Does a rewrite step on the specified expression maybe returning the result.
   rewriteStep

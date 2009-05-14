@@ -18,7 +18,7 @@ import Prelude hiding (lookup)
 gStyle :: String
 gStyle = unlines
          [
-          "node [fontcolor=\"#1f33b3\", fontsize=12, shape=none, fontname=\"Helvetica\"];"
+          "node [fontcolor=\"#1f33b3\", fontsize=12, shape=box, fontname=\"Helvetica\"];"
          ,"edge [color=\"#000000\", style=dotted, fontname=\"Helvetica\", arrowhead=normal, arrowsize=0.3];"
          ]
 

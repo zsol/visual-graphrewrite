@@ -8,12 +8,12 @@ Usage:
 - The program reads the source, which can contain only simple function definitions.
   The following definitions may be used: (++), div, mod, eqInt, not, Cons, Nil, succ, True, False, sin.
 - The source is converted into a graph rewrite system.
-- The program opens a window. 
+- The program opens a window.
   Press space to see the right-hand-sides of the graph rewrite rules.
 
 Short term plans (this version is expected at the end of May):
 - Show the graph rewrite process instead of the rhs of rewrite rules.
-- Allow tuples and lists.
++ Allow tuples and lists.
 - Allow data declarations.
 - Allow more built-in functions.
 - User defined start expression for the graph reduction.
