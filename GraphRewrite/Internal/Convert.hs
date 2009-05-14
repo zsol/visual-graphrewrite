@@ -88,4 +88,6 @@ convExpr (HsLet decls exp)  = Let (map convDecl decls) (convExpr exp)
 convExpr (HsCon (UnQual (HsIdent con))) = Cons con
 convExpr (HsParen exp) = convExpr exp
 convExpr (HsList []) = Cons "[]"
+convExpr (HsList (h:t)) = Apply [Cons ":", convExpr h, convExpr (HsList t)]
+convExpr (HsTuple exps) = Apply $ Cons "Tuple" : map convExpr exps
 convExpr a = Lit ("UNIMPLEMENTED: " ++ show a)

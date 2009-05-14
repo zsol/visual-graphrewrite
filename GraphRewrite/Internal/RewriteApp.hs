@@ -39,8 +39,9 @@ where
   makeExpr (SH.Cons c) = SCons c
   makeExpr (SH.Lit l) = SLit l
   makeExpr (SH.Let _ e) = makeRefExpr e
+  makeExpr (SH.Apply ((SH.Lit l):t))  = SApp (SLit l)  (map makeExpr t) -- this really shouldn't be used.
   makeExpr (SH.Apply ((SH.Cons c):t)) = SApp (SCons c) (map makeExpr t)
-  makeExpr (SH.Apply ((SH.Var v):t))  = SApp (SFun (length t) v) (map makeExpr t) -- ez vajon igy jo?
+  makeExpr (SH.Apply ((SH.Var v):t))  = SApp (SFun (length t) v) (map makeExpr t)
   makeExpr (SH.Apply (h@(SH.Apply (_:_)):t)) = SApp (fst la) (snd la)
       where
         la = liftApp $ makeExpr h

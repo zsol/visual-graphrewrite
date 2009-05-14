@@ -6,7 +6,8 @@ data Prec
     | Prefix
 
 deltaNames :: [(Prec, String)]
-deltaNames = [(Infixr 5, "++"), (Infixr 5, ":")] ++ map p ["div", "mod", "eqInt", "not", "Cons", "Nil", "succ", "True", "False", "sin", "[]"]  where
+deltaNames = [(Infixr 5, "++"), (Infixr 5, ":")] ++
+             map p ["div", "mod", "eqInt", "not", "Tuple", "succ", "True", "False", "sin", "[]"]  where
 
     p s = (Prefix, s)
 
