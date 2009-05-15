@@ -27,7 +27,7 @@ where
 
   makeRule :: SH.FunAlt Int -> Rule
   makeRule (_, ps, e) = fixExpr $ Rule { patts = map makePat ps,
-                                         exp = makeExpr e,
+                                         exp = makeRefExpr e,
                                          graph = makeGraph (e:ps) }
 
   makePat :: SH.Expr Int -> Expr

@@ -49,7 +49,7 @@ module GraphRewrite.Internal.Rewrite
       -> Graph         -- ^ Graph showing images of references
       -> Maybe PointedGraph -- ^ Just the resulting pointed graph or Nothing if rewriting is impossible.
   rewriteStep rs e g =
-      case flattenSApp (deref e g) g of
+      case flattenSApp rs (deref rs e g) g of
         (SFun ar f, l) -> case rls of
                            Just rls
                                | length l == ar -> firstMatch rs g l rls
@@ -93,6 +93,7 @@ module GraphRewrite.Internal.Rewrite
       -> Expr          -- miben
       -> Expr
   substitute bs (SRef n) = fromMaybe (error "Internal error: reference target not found") $ I.lookup n bs
+  substitute bs (SHole n) = substitute bs (SRef n) --TODO: not really sure about this
   substitute bs (SApp e es) = SApp (substitute bs e) (map (substitute bs) es)
   substitute _ e = e
 

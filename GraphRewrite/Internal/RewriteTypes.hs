@@ -3,7 +3,7 @@ module GraphRewrite.Internal.RewriteTypes
 where
 
   import Data.IntMap
-  import Prelude hiding (lookup)
+  import Prelude hiding (lookup, exp)
 
   -- | Arity is a non-negative integer which represents the number of arguments a function can take.
   type Arity = Int
@@ -44,13 +44,13 @@ where
   type PointedGraph = (Expr, Graph)
 
   -- | This function tries to eliminate SApp structures nested in the first argument.
-  flattenSApp :: Expr -> Graph ->
+  flattenSApp :: RewriteSystem -> Expr -> Graph ->
     ( Expr, [Expr])          -- ^ Symbol to be applied. Can only be SFun, SCons or SLit. & Arguments. In case of SFun, this can not be empty, otherwise this should be empty.
-  flattenSApp (SApp x xs) g
-    = case deref x g of
-      SApp y ys  -> flattenSApp (SApp y (ys ++ xs)) g
+  flattenSApp rs (SApp x xs) g
+    = case deref rs x g of
+      SApp y ys  -> flattenSApp rs (SApp y (ys ++ xs)) g
       x          -> (x, xs)
-  flattenSApp x _       -- SLit, SCons, SFun  esetén
+  flattenSApp _ x _       -- in case of SLit, SCons, SFun
     = (x, [])
 
   exprID :: Expr -> String
@@ -59,17 +59,22 @@ where
   exprID (SLit l) = l
   exprID (SHole h) = show h
   exprID (SRef r) = show r
-  exprID e = exprID $ fst $ flattenSApp e empty
+  exprID e = exprID $ fst $ flattenSApp defaultRS e empty
 
   -- | Replace SRef structure for the referenced expression. Errors out if there is no dereference.
   deref
-      :: Expr -- ^ Expression to be dereferenced. If not an SRef then this will be the result.
+      :: RewriteSystem -- ^ Surrounding context.
+      -> Expr -- ^ Expression to be dereferenced. If not an SRef then this will be the result.
       -> Graph -- ^ Images of SRefs
       -> Expr -- ^ Dereferenced expression.
-  deref (SRef ref) im = case lookup ref im of
-                          Just e  -> deref e im
-                          Nothing -> error "deref" -- SRef ref
-  deref e _ = e
+  deref rs (SRef ref) im = case lookup ref im of
+                          Just e  -> deref rs e im
+                          Nothing -> case lookup ref (rules rs) of
+                                      Just [r] -> deref rs (exp r) im
+                                      Just _  -> error $ "There is a problem dereferencing " ++ show ref ++ ". Check your source."
+                                      Nothing -> error $ "No reference found for " ++ show ref ++ ". This shouldn't happen."
+
+  deref _ e _ = e
 
 
 

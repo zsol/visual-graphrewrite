@@ -12,7 +12,7 @@ import Data.Graph.Inductive.Tree
 import qualified Data.Graph.Inductive.Graph as IG
 import Data.IntMap hiding (map)
 import Data.Maybe
-import Prelude hiding (lookup)
+import Prelude hiding (lookup, exp)
 
 
 gStyle :: String
@@ -88,7 +88,11 @@ graphToGr :: Supply Int -> RewriteSystem -> PointedGraph -> Gr String String
 graphToGr ids rs (e, g) = insExpr (-1) ids e IG.empty
     where
       insExpr i ids e@(SRef r) gr = let
-          refe = fromJust (lookup r g)
+          refe = case lookup r g of
+                   Just r -> r
+                   _ -> case lookup r (rules rs) of
+                         Just [r] -> exp r
+                         _ -> error $ "Undefined reference: " ++ show r ++ ". Check your source."
           (ids1, ids2) = split2 ids
         in
           if i < 0 then

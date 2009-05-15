@@ -71,14 +71,14 @@ main = do
            G.timeoutAddFull (yield >> return True) G.priorityDefaultIdle 50 -- magic, do not touch
            case mainTerm options of
              Nothing -> addRuleDefs rs ids3
-             Just tm -> startRewriting tm rs ids3
+             Just tm -> startRewriting tm (stepNum options) rs ids3
 
-startRewriting :: String -> RewriteSystem -> Supply Int -> IO ()
-startRewriting term rs ids = case I.toList (I.filter (== term) (names rs)) of
+startRewriting :: String -> Int -> RewriteSystem -> Supply Int -> IO ()
+startRewriting term n rs ids = case I.toList (I.filter (== term) (names rs)) of
     [(tid, _)] -> case I.lookup tid (rules rs) of
                    Just [r] -> do
                      addToSession (graphToGr ids1 rs (exp r, graph r))
-                     mapM_ addToSession (map (\(x,y) -> graphToGr x rs y) (zip (split ids2) (rewriteSteps rs (exp r) (graph r))))
+                     mapM_ addToSession (map (\(x,y) -> graphToGr x rs y) (zip (split ids2) (take n $ rewriteSteps rs (exp r) (graph r))))
 
                    Just _ -> error $ "Ambiguous reference to term: " ++ term ++ ". Make sure there is only one rule associated with it in the source file. (Don't you want to examine another term?)"
                    Nothing -> error $ "No such term `" ++ term ++ "' found in the source file, it is probably defined elsewhere. (Did you want to examine a delta function?)"
