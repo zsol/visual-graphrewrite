@@ -16,7 +16,7 @@ Short term plans (this version is expected at the end of May):
 + Allow tuples and lists.
 - Allow data declarations.
 - Allow more built-in functions.
-- User defined start expression for the graph reduction.
++ User defined start expression for the graph reduction.
 - To be usable as a library.
 
 Plans for the final version:

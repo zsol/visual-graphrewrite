@@ -1,5 +1,6 @@
 -- | Types which are specific to a graph rewrite system.
 module GraphRewrite.Internal.RewriteTypes
+
 where
 
   import Data.IntMap
@@ -43,6 +44,14 @@ where
   -- | This is a normal graph with one expression designated as root node.
   type PointedGraph = (Expr, Graph)
 
+  data RewriteTree = Node PointedGraph | Step PointedGraph [RewriteTree]
+              deriving (Show)
+
+  lastGraph :: RewriteTree -> PointedGraph
+  lastGraph (Node pg)    = pg
+  lastGraph (Step pg []) = pg
+  lastGraph (Step _ trs) = lastGraph $ last trs
+
   -- | This function tries to eliminate SApp structures nested in the first argument.
   flattenSApp :: RewriteSystem -> Expr -> Graph ->
     ( Expr, [Expr])          -- ^ Symbol to be applied. Can only be SFun, SCons or SLit. & Arguments. In case of SFun, this can not be empty, otherwise this should be empty.
@@ -61,20 +70,27 @@ where
   exprID (SRef r) = show r
   exprID e = exprID $ fst $ flattenSApp defaultRS e empty
 
-  -- | Replace SRef structure for the referenced expression. Errors out if there is no dereference.
+  -- | Recursively replace SRef structure for the referenced expression. Errors out if there is no dereference.
   deref
       :: RewriteSystem -- ^ Surrounding context.
       -> Expr -- ^ Expression to be dereferenced. If not an SRef then this will be the result.
       -> Graph -- ^ Images of SRefs
       -> Expr -- ^ Dereferenced expression.
-  deref rs (SRef ref) im = case lookup ref im of
-                          Just e  -> deref rs e im
-                          Nothing -> case lookup ref (rules rs) of
-                                      Just [r] -> deref rs (exp r) im
-                                      Just _  -> error $ "There is a problem dereferencing " ++ show ref ++ ". Check your source."
-                                      Nothing -> error $ "No reference found for " ++ show ref ++ ". This shouldn't happen."
-
+  deref rs e@(SRef ref) im = deref rs (deref' rs e im) im
   deref _ e _ = e
+
+  -- | Replace SRef structure for the referenced expression. This is a shallow implementation. See also: 'deref'.
+  deref'
+      :: RewriteSystem
+      -> Expr
+      -> Graph
+      -> Expr
+  deref' rs (SRef ref) im = case lookup ref im of
+                              Just e -> e
+                              Nothing -> case lookup ref (rules rs) of
+                                          Just [r] -> exp r
+                                          Just _  -> error $ "There is a problem dereferencing " ++ show ref ++ ". Check your source."
+                                          Nothing -> error $ "No reference found for " ++ show ref ++ ". This shouldn't happen."
 
 
 

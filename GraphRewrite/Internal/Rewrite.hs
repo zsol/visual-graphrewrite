@@ -1,10 +1,11 @@
 
 module GraphRewrite.Internal.Rewrite
-    ( rewriteHNF
+{-    ( rewriteHNF
     , rewriteStep
     , rewriteStep'
     , rewriteSteps
-    ) where
+    , rewriteStepFine
+    )-} where
 
   import GraphRewrite.Internal.RewriteTypes
   import GraphRewrite.Internal.DeltaFunctions
@@ -13,13 +14,6 @@ module GraphRewrite.Internal.Rewrite
 
   import Data.Maybe
   import Prelude hiding (exp)
-
--------------------- eliminate SRef
-
-
--------------------- flatten SApp in first arguments
-
-
 
 --------------------
 
@@ -41,6 +35,55 @@ module GraphRewrite.Internal.Rewrite
   rewriteSteps rs e g = case rewriteStep rs e g of
                           Nothing      -> []
                           Just p@(e,g) -> p : rewriteSteps rs e g
+
+  rewriteStepFine
+      :: RewriteSystem
+      -> Expr
+      -> Graph
+      -> RewriteTree
+  rewriteStepFine rs e g =
+      case e of
+        SRef r             -> let ref = deref' rs e g
+                             in Step (ref, g) [rewriteStepFine rs ref g]
+        SApp (SApp _ _) _  -> let
+                                 (flatExpr, flatArgs) = flattenSApp rs (deref rs e g) g
+                                 flatApp              = SApp flatExpr flatArgs
+                             in Step (flatApp,g) [rewriteStepFine rs flatApp g]
+        SApp (SFun ar f) l -> funInApp f ar l
+        _                  -> Node (e,g)
+      where
+        funInApp f ari args = case I.lookup f (rules rs) of
+                                Just rls
+                                    | length args == ari -> case firstMatchFine rs g args rls of
+                                                             Just ((e,g), trees) -> Step (e,g) (trees ++ [rewriteStepFine rs e g])
+                                                             Nothing    -> Node (e,g)
+                                    | length args >  ari -> case firstMatchFine rs g (take ari args) rls of --TODO: do this properly
+                                                             Just ((e,g), trees) -> Step (e,g) (trees ++ [rewriteStepFine rs e g])
+                                                             Nothing    -> Node (e,g)
+                                    | otherwise          -> Node (e,g)
+                                Nothing -- no function definition found -> probably a delta function
+                                    -> let
+                                          steps = map rewriteExpFine args
+                                          fname = fromMaybe (error $ "No name found for function: " ++ show f) (I.lookup f (names rs))
+                                          delta = fromMaybe (error $ "Cannot rewrite delta: " ++ fname) (rewriteDelta fname (map (fst . lastGraph) steps))
+                                      in Step (e,g) (steps ++ [rewriteStepFine rs delta I.empty])
+        rewriteExpFine = (flip (rewriteStepFine rs)) g
+
+
+
+
+{-
+  rewriteStepFine
+      :: RewriteSystem -- ^ A rewrite system which contains rules
+      -> Expr          -- ^ Expression to be rewritten
+      -> Graph         -- ^ Graph showing images of references
+      -> [PointedGraph] -- ^ Just the resulting pointed graph or Nothing if rewriting is impossible.
+  --visszaadja az átírási lépéseket addig, amíg rewriteStep, de finomabban
+
+  rewriteStepFine rs e g = case rewriteStep' rs e g of
+     [] -> Nothing
+     l  -> last l
+-}
 
   -- | Does a rewrite step on the specified expression maybe returning the result.
   rewriteStep
@@ -136,6 +179,55 @@ module GraphRewrite.Internal.Rewrite
             _                          -> (g, Nothing)
 
 
+  matchFine
+      :: RewriteSystem
+      -> Graph
+      -> Expr -- pattern
+      -> Expr -- expression to be matched
+      -> I.IntMap Expr -- binds
+      -> (Maybe (I.IntMap Expr), [RewriteTree])
+  matchFine _ _ (SHole n) e binds = (Just (I.insert n e binds), [])
+  matchFine rs g (SLit y) e binds
+      = let tree = rewriteStepFine rs e g in
+        case lastGraph tree of
+          (SLit x, _)  | x == y -> (Just binds, [tree])
+          _                     -> (Nothing, [])
+  matchFine rs g (SCons y) e binds
+      = let tree = rewriteStepFine rs e g in
+        case lastGraph tree of
+          (SCons x, _) | x == y -> (Just binds, [tree])
+          _                     -> (Nothing, [])
+  matchFine rs g (SApp y ys) e binds
+      = let tree = rewriteStepFine rs e g in
+        case lastGraph tree of
+          (SApp x xs, _)        -> matchesFine rs g (y:ys) (x:xs) binds [tree]
+          _                     -> (Nothing, [])
+
+  matchesFine
+      :: RewriteSystem
+      -> Graph
+      -> [Expr]
+      -> [Expr]
+      -> I.IntMap Expr
+      -> [RewriteTree]
+      -> (Maybe (I.IntMap Expr), [RewriteTree])
+  matchesFine _ _ [] [] binds trees = (Just binds, trees)
+  matchesFine rs g (p:ps) (e:es) binds trees
+      = case matchFine rs g p e binds of
+          (Just binds, newtrees)  -> matchesFine rs g ps es binds (trees ++ newtrees)
+          x@(Nothing, _)          -> x
+
+  firstMatchFine
+      :: RewriteSystem
+      -> Graph
+      -> [Expr]
+      -> [Rule]
+      -> Maybe (PointedGraph, [RewriteTree])
+  firstMatchFine _ _ _ [] = Nothing
+  firstMatchFine rs g exprs (rule:rules)
+      = case matchesFine rs g (patts rule) exprs I.empty [] of
+          (Just binds, trees) -> Just ((substitute binds (exp rule), g), trees)
+          _                   -> firstMatchFine rs g exprs rules
 {-
 
 Apply [Apply [Var "++", Apply [Var "showInt", Apply [Apply [Var "div", Var "n"], Lit "10"]]],

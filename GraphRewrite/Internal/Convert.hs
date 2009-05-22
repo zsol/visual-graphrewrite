@@ -38,7 +38,7 @@ convDecl (HsPatBind _ pat rhs _decl) = PatBind (convPars pat) (convRhs rhs)
 --convDecl (HsDataDecl _ _ (HsSymbol a) _ _ _) = DataDecl a
 
 convMatch :: HsMatch -> FunAlt String
-convMatch (HsMatch _ (HsIdent fname) pars expr _) = (fname, map convPars pars, convRhs expr)
+convMatch (HsMatch _ fname pars expr _) = (head $ nameExpr $ convName fname, map convPars pars, convRhs expr)
 
 convPars :: HsPat -> Patt String
 convPars (HsPVar n) = convName n

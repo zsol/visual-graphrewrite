@@ -20,7 +20,10 @@ showInt 9 = "9"
 showInt n = (++) (showInt (div n 10)) (showInt (mod n 10))
 
 showIntList [] = ""
-showIntList (h:t) = (++) (showInt h) ((++) ", " (showIntList t))
+showIntList (h:t) = showInt h ++ ", " ++ showIntList t
+
+(++) [] l = l
+(++) (h:t) l = h : (t ++ l)
 
 --primesbelow :: Int -> String
 --primesbelow n = showIntList (eratos (enumFT 2 n))

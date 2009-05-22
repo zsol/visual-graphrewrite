@@ -36,6 +36,7 @@ library
         build-depends:    ipprint >= 0.3
         build-depends:    fgl >= 5.4.2.2
         build-depends:    pretty >= 1.0.1.0
+        build-depends:    graphviz == 2009.5.*
         other-modules:    GraphRewrite.Main.CmdLineOpts,
                           GraphRewrite.Main.Visualize
         ghc-options:      -Wall -fno-warn-name-shadowing -fno-warn-incomplete-patterns
@@ -67,7 +68,8 @@ executable visual-graphrewrite
                      GraphRewrite.Internal.Rewrite,
                      GraphRewrite.Internal.DeltaFunctions,
                      GraphRewrite.Main.CmdLineOpts,
-                     GraphRewrite.Main.Visualize
+                     GraphRewrite.Main.Visualize,
+                     GraphRewrite.Main.Welcome
         ghc-options:      -Wall -fno-warn-name-shadowing -fno-warn-incomplete-patterns
 
 
