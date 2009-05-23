@@ -1,6 +1,6 @@
-
+-- | This module contains functions to convert a 'SimpleHaskell' module to a 'RewriteSystem'.
 module GraphRewrite.Internal.RewriteApp
-    ( makeRewriteRules, invMakeExpr, makeRewriteSystem )
+    ( makeRewriteRules, makeRewriteSystem )
 where
   import Prelude hiding (exp)
 
@@ -10,9 +10,14 @@ where
   import GraphRewrite.Internal.RewriteTypes
   import qualified GraphRewrite.Internal.SimpleHaskell as SH
 
-  makeRewriteSystem :: SH.SimpModule Int -> I.IntMap String -> RewriteSystem
+  -- | Create a 'RewriteSystem' from a Haskell module with 'Int' identifiers.
+  makeRewriteSystem
+      :: SH.SimpModule Int -- ^ A Haskell module with identifiers already replaced by unique integers.
+      -> I.IntMap String    -- ^ A mapping from identifiers to names
+      -> RewriteSystem
   makeRewriteSystem m nms = (makeRewriteRules m) { names = nms }
 
+  -- | Build the rules part of a 'RewriteSystem'.
   makeRewriteRules :: SH.SimpModule Int -> RewriteSystem
   makeRewriteRules []    = defaultRS
   makeRewriteRules (h:t) = case I.lookup hid (rules rest) of -- FIXME vv

@@ -1,3 +1,4 @@
+-- | This module contains some pre-defined functions (called delta functions, hence the name), some properties and how to evaluate them.
 module GraphRewrite.Internal.DeltaFunctions
 where
 
@@ -5,13 +6,18 @@ data Prec
     = Infixr Int
     | Prefix
 
+-- | Names and 'Prec' of the delta functions.
 deltaNames :: [(Prec, String)]
 deltaNames = [(Infixr 5, "++"), (Infixr 5, ":")] ++
              map p ["div", "mod", "eqInt", "not", "Tuple", "succ", "True", "False", "sin", "[]"]  where
 
     p s = (Prefix, s)
 
-evalDelta :: String -> [String] -> String
+-- | How to evaluate a delta function.
+evalDelta
+    :: String -- ^ Function name.
+    -> [String] -- ^ Function arguments in 'String' representation.
+    -> String -- ^ Result, again in 'String' format.
 evalDelta "sin" [x] = show $ sin (read x :: Double)
 evalDelta "True" [] = "True"
 evalDelta "False" [] = "False"

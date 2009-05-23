@@ -26,6 +26,7 @@ where
       }
                        deriving (Show)
 
+  -- | An empty 'RewriteSystem'.
   defaultRS :: RewriteSystem
   defaultRS = RewriteSystem { rules = empty, names = empty }
 
@@ -44,9 +45,11 @@ where
   -- | This is a normal graph with one expression designated as root node.
   type PointedGraph = (Expr, Graph)
 
+  -- | A tree which represents a graph rewrite procedure. Every node has an arbitrary amount of children, the rightmost node is usually the head normal form.
   data RewriteTree = Node PointedGraph | Step PointedGraph [RewriteTree]
               deriving (Show)
 
+  -- | Gets the rightmost 'PointedGraph' from a 'RewriteTree'.
   lastGraph :: RewriteTree -> PointedGraph
   lastGraph (Node pg)    = pg
   lastGraph (Step pg []) = pg
@@ -62,6 +65,8 @@ where
   flattenSApp _ x _       -- in case of SLit, SCons, SFun
     = (x, [])
 
+
+  -- | Gets an 'Expr' structure's identifier as a string.
   exprID :: Expr -> String
   exprID (SCons c) = show c
   exprID (SFun _ f) = show f

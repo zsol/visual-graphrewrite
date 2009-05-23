@@ -1,4 +1,4 @@
-
+-- | This module contains functions which perform the graph rewriting procedure.
 module GraphRewrite.Internal.Rewrite
 {-    ( rewriteHNF
     , rewriteStep
@@ -36,11 +36,12 @@ module GraphRewrite.Internal.Rewrite
                           Nothing      -> []
                           Just p@(e,g) -> p : rewriteSteps rs e g
 
+  -- | Does the rewriting on a specified expression and returns detailed results.
   rewriteStepFine
-      :: RewriteSystem
-      -> Expr
-      -> Graph
-      -> RewriteTree
+      :: RewriteSystem -- ^ The context.
+      -> Expr           -- ^ Expression to be rewritten.
+      -> Graph          -- ^ Graph showing images of possible references in the expression.
+      -> RewriteTree    -- ^ Resulting tree which describes the rewriting process in great detail.
   rewriteStepFine rs e g =
       case e of
         SRef _             -> let ref = deref' rs e g
@@ -177,14 +178,14 @@ module GraphRewrite.Internal.Rewrite
             (SApp x xs, bs)            -> matches rs g (x:xs) (y:ys) bs
             _                          -> (g, Nothing)
 
-
+  -- | Fine pattern matching. Returns the rewrite steps needed to match the expression against the pattern.
   matchFine
       :: RewriteSystem
       -> Graph
-      -> Expr -- pattern
-      -> Expr -- expression to be matched
-      -> I.IntMap Expr -- binds
-      -> (Maybe (I.IntMap Expr), [RewriteTree])
+      -> Expr -- ^ Pattern to be matched against.
+      -> Expr -- ^ Expression to be matched.
+      -> I.IntMap Expr -- ^ Already existing matches (bindings).
+      -> (Maybe (I.IntMap Expr), [RewriteTree]) -- ^ The first component is 'Nothing' if the match is unsuccessful, otherwise it contains the original bindings possibly extended (as a result of the current match). The second component is a list of extra rewriting steps required to resolve the expression to match the pattern.
   matchFine _ _ (SHole n) e binds = (Just (I.insert n e binds), [])
   matchFine rs g (SLit y) e binds
       = let tree = rewriteStepFine rs e g in
@@ -202,26 +203,28 @@ module GraphRewrite.Internal.Rewrite
           (SApp x xs, _)        -> matchesFine rs g (y:ys) (x:xs) binds [tree]
           _                     -> (Nothing, [])
 
+  -- | Fine pattern matching for multiple expressions and patterns. See also: 'matchFine'.
   matchesFine
       :: RewriteSystem
       -> Graph
-      -> [Expr]
-      -> [Expr]
-      -> I.IntMap Expr
-      -> [RewriteTree]
-      -> (Maybe (I.IntMap Expr), [RewriteTree])
+      -> [Expr] -- ^ List of patterns.
+      -> [Expr] -- ^ List of expressions.
+      -> I.IntMap Expr -- ^ Bindings already bound.
+      -> [RewriteTree] -- ^ Rewrite steps already needed.
+      -> (Maybe (I.IntMap Expr), [RewriteTree]) -- ^ The first component is 'Nothing' if the match is unsuccessful, otherwise it contains the original bindings possibly extended (as a result of the current match). The second component is a list of extra rewriting steps required to resolve the expression to match the pattern.
   matchesFine _ _ [] [] binds trees = (Just binds, trees)
   matchesFine rs g (p:ps) (e:es) binds trees
       = case matchFine rs g p e binds of
           (Just binds, newtrees)  -> matchesFine rs g ps es binds (trees ++ newtrees)
           x@(Nothing, _)          -> x
 
+  -- | Applies the first matching rule for a list of arguments. Also returns the rewrite steps needed for the underlying pattern matching.
   firstMatchFine
       :: RewriteSystem
       -> Graph
-      -> [Expr]
-      -> [Rule]
-      -> Maybe (PointedGraph, [RewriteTree])
+      -> [Expr] -- ^ Arguments.
+      -> [Rule] -- ^ Possible rules.
+      -> Maybe (PointedGraph, [RewriteTree]) -- ^ 'Nothing' if pattern matching is unsuccessful; otherwise the first component is a 'PointedGraph' on which the rule was already applied, the second component contains the rewrite steps needed for the pattern matching.
   firstMatchFine _ _ _ [] = Nothing
   firstMatchFine rs g exprs (rule:rules)
       = case matchesFine rs g (patts rule) exprs I.empty [] of
