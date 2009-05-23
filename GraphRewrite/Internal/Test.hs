@@ -24,7 +24,7 @@ infix 1 <=>
 (<=>) = (==)
 
 sameSet :: Ord a => [a] -> [a] -> Bool
-sameSet a b = sort a == sort b
+sameSet = (==) `on` sort
 {-
 timeOut2s :: a -> IO a
 timeOut2s x = do
@@ -106,7 +106,7 @@ dataExpr (SApp e es) = dataExpr e && all dataExpr es
 dataExpr _           = True
 
 dataGraph :: Graph -> Bool
-dataGraph g = all dataExpr (IM.elems g)
+dataGraph = all dataExpr . IM.elems
 
 ref :: Expr -> Bool
 ref (SRef _) = True

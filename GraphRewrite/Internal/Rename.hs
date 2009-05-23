@@ -35,7 +35,7 @@ type UniqueIds   = Supply Int
 
 -- | Result monad; error spreads
 data Result a
-    = Hiba String
+    = Error String
     | Ok a
       deriving (Show, Eq)
 
@@ -44,12 +44,12 @@ data Result a
 instance Monad (Result) where
 
         a >>= b = case a of
-                Hiba err        -> fail err
+                Error err        -> fail err
                 Ok x            -> b x
 
-        fail a = Hiba a
+        fail = Error
 
-        return a = Ok a
+        return = Ok
 
 instance MonadFix (Result) where
 
@@ -62,16 +62,16 @@ instance MonadFix (Result) where
 instance Functor Result where
 
     fmap f (Ok a) = Ok (f a)
-    fmap _ (Hiba err) = Hiba err
+    fmap _ (Error err) = Error err
 ------------------------------------------------
 swap :: (a, b) -> (b, a)
-swap = \(x,y) -> (y,x)
+swap (x,y) = (y,x)
 
 namesToBinds :: Names -> Binds
-namesToBinds = fromList . map (swap) . I.toList
+namesToBinds = fromList . map swap . I.toList
 
 bindsToNames :: Binds -> Names
-bindsToNames = I.fromList . map (swap) . toList
+bindsToNames = I.fromList . map swap . toList
 
 -- | Assigns 'Int' identifiers to Strings. Each String gets a unique Int.
 distributeIds
@@ -184,7 +184,7 @@ joinPatts (Cons _, [i]) = Cons i
 joinPatts (Lit s, _) = Lit s
 joinPatts (Apply s, i) = Apply (map joinPatts (zip s i'))
     where
-      i' = map (\x -> [x]) i
+      i' = map (: []) i
 
 
 -- | Does the substitution in function alternatives.
@@ -209,12 +209,12 @@ renameFunAlt b (f, as, e) ids = do --elofeltetel: f mar at van nevezve, es b-ben
 
   (e_names, e') <- renameExpr b' e ids2
 
-  return (I.unions ([as_names1, as_names2, e_names]), (f', as'', e'))
+  return (I.unions [as_names1, as_names2, e_names], (f', as'', e'))
     where
       removeCons [] = []
       removeCons ((Cons _):t) = removeCons t
-      removeCons ((Apply h):t) = (Apply (removeCons h)):(removeCons t)
-      removeCons (h:t) = h:(removeCons t)
+      removeCons ((Apply h):t) = Apply (removeCons h) : removeCons t
+      removeCons (h:t) = h : removeCons t
 
 -- | This is 'renameFunAlt' for lists. It applies 'renameFunAlt' for every 'FunAlt' in the second parameter.
 renameFunAlts :: Binds -> [FunAlt String] -> UniqueIds -> Result (Names, [FunAlt Int])
@@ -237,7 +237,7 @@ rename' predef decls ids = do
 
 -- | Resubstitutes String identifiers in place of Int ones. This is useful to check correctness of 'rename'.
 invRename :: Names -> SimpModule Int -> Result (SimpModule String)
-invRename names decls = sequence $ fmap (invRenameDecl names) decls
+invRename names = sequence . fmap (invRenameDecl names)
 
 invRenameDecl :: Names -> Decl Int -> Result (Decl String)
 invRenameDecl names (FunBind alts) =  do

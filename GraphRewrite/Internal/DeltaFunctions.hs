@@ -12,9 +12,9 @@ deltaNames = [(Infixr 5, "++"), (Infixr 5, ":")] ++
     p s = (Prefix, s)
 
 evalDelta :: String -> [String] -> String
-evalDelta "sin" [x] = show $ sin $ (read x :: Double)
+evalDelta "sin" [x] = show $ sin (read x :: Double)
 evalDelta "True" [] = "True"
 evalDelta "False" [] = "False"
-evalDelta "succ" [n] = show $ (read n) + (1 :: Int)
+evalDelta "succ" [n] = show $ read n + (1 :: Int)
 evalDelta "++" [a,b] = a ++ b
 evalDelta f _ = error $ "Evaluating this function is NYI: " ++ f

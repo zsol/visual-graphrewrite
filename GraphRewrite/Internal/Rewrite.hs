@@ -43,7 +43,7 @@ module GraphRewrite.Internal.Rewrite
       -> RewriteTree
   rewriteStepFine rs e g =
       case e of
-        SRef r             -> let ref = deref' rs e g
+        SRef _             -> let ref = deref' rs e g
                              in Step (ref, g) [rewriteStepFine rs ref g]
         SApp (SApp _ _) _  -> let
                                  (flatExpr, flatArgs) = flattenSApp rs (deref rs e g) g
@@ -67,7 +67,7 @@ module GraphRewrite.Internal.Rewrite
                                           fname = fromMaybe (error $ "No name found for function: " ++ show f) (I.lookup f (names rs))
                                           delta = fromMaybe (error $ "Cannot rewrite delta: " ++ fname) (rewriteDelta fname (map (fst . lastGraph) steps))
                                       in Step (e,g) (steps ++ [rewriteStepFine rs delta I.empty])
-        rewriteExpFine = (flip (rewriteStepFine rs)) g
+        rewriteExpFine = flip (rewriteStepFine rs) g
 
 
 
@@ -98,8 +98,7 @@ module GraphRewrite.Internal.Rewrite
                                | length l == ar -> firstMatch rs g l rls
                                | length l  > ar -> do
                                        (e, g) <- firstMatch rs g (take ar l) rls
-                                       pg <- rewriteStep rs (SApp e (drop ar l)) g
-                                       return pg
+                                       rewriteStep rs (SApp e (drop ar l)) g
                                | otherwise      -> Nothing
                            Nothing -> do
                                     let l' = map (fst . rewriteExp) l
@@ -109,7 +108,7 @@ module GraphRewrite.Internal.Rewrite
                                     return (e, I.empty)
             where
                 rls = (I.lookup f (rules rs))
-                rewriteExp = (flip (rewriteHNF rs)) g
+                rewriteExp = flip (rewriteHNF rs) g
 
         _ -> Nothing
   -- | Gets the first matching rule for a list of patterns (function arguments).

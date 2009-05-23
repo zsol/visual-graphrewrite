@@ -26,9 +26,9 @@ where
         extend l _ = l
 
   makeRule :: SH.FunAlt Int -> Rule
-  makeRule (_, ps, e) = fixExpr $ Rule { patts = map makePat ps,
-                                         exp = makeRefExpr e,
-                                         graph = makeGraph (e:ps) }
+  makeRule (_, ps, e) = fixExpr Rule { patts = map makePat ps,
+                                       exp = makeRefExpr e,
+                                       graph = makeGraph (e:ps) }
 
   makePat :: SH.Expr Int -> Expr
   makePat (SH.AsPat _ e) = makeExpr e
@@ -42,11 +42,11 @@ where
   makeExpr (SH.Apply ((SH.Lit l):t))  = SApp (SLit l)  (map makeExpr t) -- this really shouldn't be used.
   makeExpr (SH.Apply ((SH.Cons c):t)) = SApp (SCons c) (map makeExpr t)
   makeExpr (SH.Apply ((SH.Var v):t))  = SApp (SFun (length t) v) (map makeExpr t)
-  makeExpr (SH.Apply (h@(SH.Apply (_:_)):t)) = SApp (fst la) (snd la)
+  makeExpr (SH.Apply (h@(SH.Apply (_:_)):t)) = uncurry SApp la
       where
         la = liftApp $ makeExpr h
-        liftApp (SApp (SFun a f) l) = (SFun (a + (length t)) f, l ++ (map makeExpr t))
-        liftApp (SApp (SCons c) l) = (SCons c, l ++ (map makeExpr t))
+        liftApp (SApp (SFun a f) l) = (SFun (a + length t) f, l ++ map makeExpr t)
+        liftApp (SApp (SCons c) l) = (SCons c, l ++ map makeExpr t)
 
   makeRefExpr :: SH.Expr Int -> Expr
   makeRefExpr = holeToRef . makeExpr
@@ -70,7 +70,7 @@ where
   makeGraph (p:ps) = case p of
                        SH.AsPat a e -> I.insert a (makeExpr e) (makeGraph ps)
                        SH.Let ((SH.PatBind p pe):ds) e -> let patid = read (exprID $ makePat p) :: Int in
-                                                         I.insert patid (makeRefExpr pe) (makeGraph ((SH.Let ds e):ps))
+                                                         I.insert patid (makeRefExpr pe) (makeGraph (SH.Let ds e : ps))
                        SH.Let [] _ -> makeGraph ps --redundant
                        SH.Let ((SH.FunBind _):_) _ -> error "makeGraph error: FunBinds unsupported in Let"
                        _           -> makeGraph ps

@@ -35,6 +35,6 @@ rs = makeRewriteSystem sm n
 
 (i1, i2, i3) = split3 ids
 
-(Ok (nev, modul)) = rename' predefBinds (convParse $ parseModule "result = f 1; f a = f (f a);") i1
+(Ok (nev, modul)) = rename' predefBinds (convParse $ parseModule "result = f 1; f 5 = 5; f a = f (succ a);") i1
 rendsz =  makeRewriteSystem modul nev
 pg = let r = (head $ fromJust $ I.lookup 0 (rules rendsz)) in (exp r, graph r)

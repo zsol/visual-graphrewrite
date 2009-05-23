@@ -27,10 +27,10 @@ where
         deriving (Show, Eq)
 
   -- | Convenience alias for an expression
-  type SExpr a = Expr a
+  type SExpr = Expr
 
   -- | A pattern is essentially an expression with the exception that it can not be a Let constructor.
-  type Patt a = Expr a
+  type Patt = Expr
 
   -- | This function gets the name of a declaration. This is the name of the entity that we declare.
   name :: Decl String -> String
@@ -44,7 +44,7 @@ where
   nameExpr (Cons n) = [n]
   nameExpr (Lit _n) = []
   nameExpr (AsPat p e) = p : nameExpr e
-  nameExpr (Apply es) = concat $ map nameExpr es
+  nameExpr (Apply es) = concatMap nameExpr es
 
   name' :: Decl a -> a
   name' (FunBind ((x,_,_):_)) = x
@@ -53,7 +53,7 @@ where
   nameExpr' :: Expr a -> [a]
   nameExpr' (Var n) = [n]
   nameExpr' (Cons n) = [n]
-  nameExpr' (Apply es) = concat $ map nameExpr' es
+  nameExpr' (Apply es) = concatMap nameExpr' es
 
 
 
