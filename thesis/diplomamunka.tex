@@ -1,0 +1,52 @@
+\documentclass[12pt,a4paper,twoside,openright]{report}
+\pagestyle{headings}
+
+\usepackage[magyar]{babel}
+\usepackage[latin2]{inputenc}
+\usepackage{t1enc}
+
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{graphicx}
+\usepackage[dvipdfm,bookmarks]{hyperref}
+\usepackage{stilus}
+
+\newcommand{\urlszin}{blue}
+\newcommand{\tobbiszin}{black}
+\hypersetup{
+  pdftitle={Haskell programok gráfátíró rendszerré transzformálása},
+  pdfauthor={Dollenstein Zsolt},
+  pdfkeywords={haskell, gráfátíró rendszer, diplomamunka},
+  pdfstartpage=1,
+  pdfmenubar=true,
+  pdftoolbar=true,
+  pdfstartview=FitH,
+  bookmarksnumbered=true,
+  bookmarksopen=false,
+  bookmarksopenlevel=\maxdimen,
+  pdfpagemode=UseNone,
+  breaklinks=true,
+  colorlinks=true,
+  linkcolor=\tobbiszin,
+  anchorcolor=\urlszin,
+  citecolor=\tobbiszin,
+  pagecolor=\tobbiszin,
+  urlcolor=\urlszin
+}
+
+\frenchspacing
+
+\hyphenation{}
+
+
+\begin{document}
+\include{cimoldal}
+\include{temabejelento}
+\tableofcontents
+
+\include{bevezetes}
+
+\appendix
+%%\include{cd_tartalma}
+%%\include{irodalomjegyzek}
+\end{document}

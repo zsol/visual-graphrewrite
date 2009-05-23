@@ -1,0 +1,29 @@
+\chapter{Bevezetés}
+
+Ebben a diplomamunkában gráfátíró rendszerekkel foglalkozunk.
+
+Ahhoz, hogy kitûzhessük a célunkat, ismertetünk pár alapfogalmat a
+gráfátíró rendszerekkel kapcsolatban.
+
+\csillagok
+
+A gráfátírás (\emph{graph rewriting} vagy \emph{graph transformation})
+azt a folyamatot jelenti, mely során egy eredeti gráfból valamilyen
+automatizmus alapján egy új gráfot állítunk elõ. Formálisan: egy
+gráfátíró rendszer $p : L \rightarrow R$ alakú szabályok halmaza, ahol
+$L$ a minta gráf (a szabály bal oldala), $R$ pedig a helyettesítõ gráf
+(a szabály jobb oldala).
+
+A gráfátíró rendszerek jól használhatóak valamilyen számítás
+modellezésére. Az ötlet az, hogy a számítás egy adott állapotát
+reprezentáljuk egy gráffal. Egy adott állapotból a következõbe úgy
+jutunk, ha az eredeti állapotnak megfelelõ gráfra alkalmazunk egy
+szabályt, ezáltal új gráfot (állapotot) kapva. A szabály alkalmazása
+úgy történik, hogy az eredeti gráfra (vagy annak részgráfjára)
+illesztjük a szabály bal oldalát. Ezt a folyamatot mintaillesztésnek
+hívjuk.
+
+\begin{megj}
+Mintaillesztés közben meg kell oldanunk a részgráf
+izomorfiájának problémáját.
+\end{megj}
