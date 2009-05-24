@@ -24,6 +24,47 @@ illesztjük a szabály bal oldalát. Ezt a folyamatot mintaillesztésnek
 hívjuk.
 
 \begin{megj}
-Mintaillesztés közben meg kell oldanunk a részgráf
-izomorfiájának problémáját.
+  Mintaillesztés közben meg kell oldanunk a részgráf
+  izomorfiájának problémáját.
 \end{megj}
+
+Ezt a modellt fogjuk használni a Haskell esetében, ami egy lusta
+funkcionális programozási nyelv. A lustaság ebben az esetben azt
+eredményezi, hogy könnyen, elegánsan tudunk kezelni végtelen
+adatszerkezeteket anélkül, hogy ehhez különösebb memória vagy
+háttértár igényeket támasztanánk. A gráfátíró rendszerek segítségével
+ilyen esetekben is jól tudjuk modellezni a memória- és idõigényt.
+
+Két fõ fogalmat vezetünk be.
+
+\begin{definicio}[Adatgráf]
+  Adatgráfnak nevezzük azokat a gráfokat, melyek teljesítik a
+  következõ kritériumokat:
+  \begin{itemize}
+    \item irányított
+    \item létezik egy kitüntetett csúcs (gyökér), melybõl bármelyik
+      csúcs elérhetõ
+    \item minden csúcshoz hozzá van rendelve egy szimbólum
+    \item egy adott csúcs kimenõ élei számozottak
+  \end{itemize}
+  Adatgráf esetén egy csúcs élein ezentúl a kimenõ éleket értjük.
+\end{definicio}
+
+Az egyszerûség kedvéért minden adatgráfnak definiáljuk egy úgynevezett
+szöveges formáját, ami gyakorlatilag egy Haskell nyelven leírt
+kifejezést jelent. Minden kifejezéshez tartozik egy olyan adatgráf,
+aminek az a kifejezés a szöveges formája. Ezzel meg is teremtettük a
+kapcsolatot a programszöveg és a gráfátíró rendszer között.
+
+\begin{definicio}[Redukció]
+  A gráfredukció során egy az adatgráfban található szimbólumot
+  helyettesítjük egy megfelelõ átírási szabály által elõírt másik
+  szimbólummal (vagy szimbólumokkal).
+\end{definicio}
+
+  Az átírási szabályokat a programban található függvények definíciói
+  adják. Egy redukciós lépés során tehát egy függvényszimbólumot
+  (és argumentumait) helyettesítjük a függvény törzsével. Egy
+  redukciós lépés csak egyetlen függvényszimbólumot eliminál, viszont
+  természetesen a törzs tartalmazhat újabb függvényhívásokat.
+
