@@ -1,15 +1,20 @@
-out/diplomamunka.pdf: *.tex *.sty
+all: out aux/diplomamunka.dvi
 	latex -file-line-error -halt-on-error -output-directory=aux diplomamunka.tex
 	dvipdfm -o out/diplomamunka.pdf aux/diplomamunka.dvi
 
-all: *.tex *.sty
+aux/diplomamunka.dvi: aux *.tex *.sty
 	latex -file-line-error -halt-on-error -output-directory=aux diplomamunka.tex
-	echo -en '\n\n\n'
-	latex -file-line-error -halt-on-error -output-directory=aux diplomamunka.tex
-	dvipdfm -o out/diplomamunka.pdf aux/diplomamunka.dvi
 
-pub:
-	mv out/diplomamunka.pdf out/diplomamunka_nezheto.pdf
+aux:
+	mkdir -p aux
+
+out:
+	mkdir -p out
 
 clean:
-	rm -f aux/*
+	rm -rf aux/
+
+distclean: clean
+	rm -rf out/
+
+.PHONY: all clean distclean
