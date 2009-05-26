@@ -1,9 +1,9 @@
 digraph architecture {
-        size="10,25"
-        ratio=0.2
+        size="7,25"
+        ratio=0.3
         rankdir=LR
         nodesep=0.1
-        ranksep=0.5
+        ranksep=0.3
         node [shape = box]
         "forráskód" [shape = egg, style = filled]
         "átnevezés" [shape = hexagon]
