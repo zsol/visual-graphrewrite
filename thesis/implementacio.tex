@@ -1,0 +1,56 @@
+\chapter{Implementáció}
+
+Ebben a fejezetben a diplomamunkához tartozó program implementációs
+kérdéseivel foglalkozunk.
+
+\section{A program szerkezete}
+A programot Haskell nyelven implementáltuk, mivel egyrészt magát a
+forráskódot könnyen lehet feldolgozni (számos szövegfeldolgozó
+könyvtárcsomag létezik ezen a nyelven; mivel a legnépszerûbb Haskell
+fordítót is Haskell-ben írták, fel tudtuk használni az ebbõl származó
+segédfüggvényeket a forráskód elemzéséhez), másrészt a gráfátíró
+rendszer implementálása is bonyodalommentesen történt, köszönhetõen a
+nyelv stílusának, mely közel áll a matematikai formalizmus nyelvéhez.
+
+A kódot két nagy csoportra bonthatjuk: egy könyvtárcsomagra és a
+felhasználói felületre. A felhasználói felület felelõs a paraméterek
+megfelelõ beolvasásáért, a hibák továbbításáért a felhasználó felé,
+illetve természetesen a gráfok kirajzolásáért.
+
+\subsection{Felhasználói felület}
+A felület kódja egyrészt a \emph{GraphRewrite/Main.hs} fájlban
+található, másrészt a \emph{GraphRewrite/Main} könyvtár fájljaiban. A
+program maga többszálú; egy szál a megjelenítésért felelõs, egy másik
+pedig magát a számítást (a gráfátírást) végzi. A két szál között a
+kommunikáció egy szinkronizáló (közös) változón keresztül történik,
+melyet a \emph{Control.Concurrent.MVar} csomag biztosít. A gráfok
+kirajzolásához a \cite[GraphViz]{graphviz} programcsomagot
+használtuk.
+
+\subsection{Könyvtárcsomag}
+A könyvtárcsomag felülete a \emph{GraphRewrite.hs} fáljban található,
+mely valójában csak újra exportálja a \emph{GraphRewrite/Internal}
+könyvtár alatt található belsõ modulok nyilvános felületét. A
+\emph{SimpleHaskell} modul egy saját, leegyszerûsített
+reprezentációját adja a Haskell nyelvnek. Erre azért volt szükség,
+mert a \cite[GHC]{ghc}, a nyelv egyik legnépszerûbb
+fordítóprogramjának részeként szállított beolvasó könyvtárcsomag
+a gráfátíró rendszerek szempontjából túl sok információt
+tartalmazott. A \emph{Convert} modul feladata az iménti beolvasás
+eredményét a leegyszerûsített reprezentációra fordítani. A feldolgozás
+következõ fázisát a \emph{Rename} modul végzi, mely a beolvasott
+program forrásában a szöveg azonosítókat kicseréli egyedi pozitív
+egész számokra (például a $sin a$ kifejezésben a $sin$ függvény
+helyett az $1$, az $a$ változó helyett pedig a $2$ szám azonosítót
+írja) úgy, hogy közben a láthatósági szabályokat is figyelembe
+veszi. Ezen ponton kész vagyunk a gráfátíró rendszer létrehozására,
+melyet a \emph{RewriteApp} modul hajt végre. Maga az átíró rendszer
+struktúrája és a közvetlenül hozzá tartozó segédfüggvények és -típusok
+a \emph{RewriteTypes} modulban kerültek definiálásra. Az átírási
+lépéseket végrehajtó függvényeket a \emph{Rewrite} modulban
+definiáltuk.
+
+
+%% Local Variables:
+%% coding: latin-2
+%% End:
