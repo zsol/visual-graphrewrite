@@ -57,6 +57,32 @@ kifejezést jelent. Minden kifejezéshez tartozik egy olyan adatgráf,
 aminek az a kifejezés a szöveges formája. Ezzel meg is teremtettük a
 kapcsolatot a programszöveg és a gráfátíró rendszer között.
 
+\begin{pelda}
+  Vegyük a következõ Haskell kifejezést:
+  \begin{lstlisting}
+    l = [71, 72]
+  \end{lstlisting}
+  Ez definiál egy $l$ szimbólumot, melyhez egy kételemû listát köt,
+  melynek elemei rendre $71$ és $72$. Ez az írásmód tulajdonképpen egy
+  szintaktikus egyszerûsítése a megfelelõ listának:
+  \begin{lstlisting}
+    [71, 72] == 71 : 72 : []
+  \end{lstlisting}
+  Az egyenlõség jobb oldalán található kifejezés mutatja, hogyan
+  reprezentálja a listákat a nyelv specifikációja. Két konstruktort
+  figyelhetünk meg: a $(:)$  ,,listabõvítõ operátort'', mely a
+  baloldali argumentumát (egy elem) a jobboldali argumentuma (egy
+  lista) elé helyez; valamint a $[]$ üres lista konstruktort. A fenti
+  kifejezéshez tartozó adatgráfot \aref{fig:lstdatag} ábra mutatja.
+  \begin{figure}[htb]
+    \begin{center}
+      \caption{Egy kételemû listához tartozó adatgráf}
+      \includegraphics[height=0.3\textheight]{eps/grw_5.eps}
+    \end{center}
+    \label{fig:lstdatag}
+  \end{figure}
+\end{pelda}
+
 \begin{definicio}[Redukció]
   A gráfredukció során egy az adatgráfban található szimbólumot
   helyettesítjük egy megfelelõ átírási szabály által elõírt másik
@@ -68,6 +94,61 @@ adják. Egy redukciós lépés során tehát egy függvényszimbólumot
 (és argumentumait) helyettesítjük a függvény törzsével. Egy
 redukciós lépés csak egyetlen függvényszimbólumot eliminál, viszont
 természetesen a törzs tartalmazhat újabb függvényhívásokat.
+
+\begin{pelda}
+  Természetesen egy függvény definícióját két részre lehet bontani. A
+  bal oldal (\emph{left hand side}, \emph{lhs}) megadja a függvény
+  nevét, illetve az argumentumait --- a Haskell esetében mintákat,
+  melyeket késõbb illeszteni lehet konkrét argumentumokra. A jobb
+  oldal (\emph{right hand side}, \emph{rhs}) pedig maga a
+  függvénytörzs, melyben leírjuk, hogy a jobb oldalon megadott
+  mintaillesztések után a függvényszimbólumot és argumentumait milyen
+  kifejezésre kell lecserélni. Ez jól megfeleltethetõ az átírási
+  szabályok bal- és jobb oldalának, és valóban ez áll a definíció
+  hátterében.
+  A következõ egyszerû függvény a logikai \emph{és} mûveletet valósítja
+  meg:
+  \begin{lstlisting}
+    False && _ = False
+    True  && a = a
+  \end{lstlisting}
+  Ebbõl a kódrészletbõl két átírási szabály keletkezik --- soronként
+  egy.
+  \begin{figure}[htb]
+    \captionsetup{position=top}
+    \captionsetup[subfloat]{captionskip=-20pt}
+    \begin{center}
+      \subfloat[Elsõ sor]{
+        \label{fig:eselso}
+        \includegraphics{eps/grw_14.eps}
+        \captionsetup{position=top}
+      }
+      \subfloat[Második sor]{
+        \captionsetup{position=top}
+        \label{fig:esmasodik}
+        \includegraphics[height=7cm]{eps/grw_15.eps}
+      }
+      \vspace{28pt}
+      \caption{A logikai \emph{és} két szabálya}
+    \end{center}
+    \label{fig:esszabaly}
+  \end{figure}
+  Látható, ahogy az elsõ szabályban két különbözõ csúcsba ugyanaz a
+  (\emph{False}) érték íródott. Ez azt jelenti, hogy a kiértékelés
+  közben kétszer tárolódik el ez az érték (egyszer a
+  mintaillesztésnél, egyszer a szabály jobb oldalánál). Ezen persze
+  lehet javítani Haskell-ben a következõ megoldással:
+  \begin{lstlisting}
+    f@False && _ = f
+  \end{lstlisting}
+  Itt az \emph{f} szimbólum egy referencia lesz arra a kifejezésre,
+  ami illeszkedett a \emph{False} konstruktorra. Az így kialakult
+  szabály hasonlít \aref{fig:esmasodik} ábrára.
+
+  A második szabály arra mutat példát, hogy a bal oldalon kialakult
+  kötéseket használhatjuk a jobb oldalon is, sõt, hatékonysági okokból
+  érdemes is ezt tenni.
+\end{pelda}
 
 Ezen diplomamunkához tartozó program egy Haskell nyelven íródott
 programszöveget transzformál gráfátíró rendszerré, majd ebben a

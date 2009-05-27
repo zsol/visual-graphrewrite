@@ -4,7 +4,7 @@ vpath %.eps eps
 DOTFLAGS := -Gcharset=latin1
 
 eps = eltecimer.eps
-figs = arch.dot
+figs = arch.dot grw_5.dot grw_14.dot grw_15.dot
 
 all: aux/diplomamunka.dvi
 	latex -file-line-error -halt-on-error -output-directory=aux diplomamunka.tex

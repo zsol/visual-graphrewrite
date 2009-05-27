@@ -1,0 +1,10 @@
+digraph G {
+ lhs -> "&&" [ label = lhs ]
+ lhs [ style = "invis", shape=point ]
+ rhs -> a [label = rhs ]
+ rhs [ style = "invis", shape=point ]
+ "&&" -> True [ label = 1 ]
+ "&&" -> a [ label = 2 ]
+ a [ shape = triangle, label= "" ]
+ { rank= same; lhs; rhs }
+}

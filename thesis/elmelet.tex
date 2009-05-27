@@ -1,8 +1,110 @@
 \chapter{Elméleti alapok}
 
 Ebben a fejezetben a gráfátíró rendszerek elméleti alapjaival
-foglalkozunk.
+foglalkozunk. A formális definíciókhoz szükséges szintaktika
+az egyszerûség és érthetõség kedvéért megegyezik a \cite{cleanbook}
+jelöléseivel.
 
+\section{Adatgráfok}
+
+Termújraíró rendszerek, hasonlóságok, különbségek, elõnyök
+A bevezetõben tárgyalt definíciója az adatgráfoknak egy jó képet ad
+arról, hogy miért is fontos ez a fogalom. Ebben a pontban egy pontos,
+matematikailag precíz definíciót adunk rájuk, megadjuk a kanonikus
+alakukat, egy rövidített leírási formát, illetve egyéb fontos
+tulajdonságaikat.
+
+Az egyik fõ cél az adatgráfok definíciójánál, hogy képesek legyenek
+reprezentálni a bevezetõ utolsó példájában leírt referencia
+konstrukciót. Ez azért hasznos, hogy el tudjuk kerülni egy adott
+számítás többszöri kiértékelését, és a már esetleg kiszámolt eredményt
+újra fel tudjuk használni. Ezt a technikát a számítások megosztásának
+(\emph{sharing}) hívjuk.
+
+\subsection{Szintaxis}
+
+Egy gráfátíró rendszerben az adatgráfokat kétféleképpen írhatjuk le:
+kanonikus formában és rövidített formában. Ez utóbbi eset lényege,
+hogy nem kell teljesen specifikálni a gráf struktúráját, épp csak
+annyit, hogy egyértelmûen ki lehessen következtetni azt a leírásból. A
+kanonikus forma esetében ezzel ellentétben az egész struktúrát
+részletesen specifikálni kell. Általában a rövidített formát
+használjuk az átláthatósága miatt. Fontos megjegyezni, hogy a
+rövidített leírásból természetesen elõállítható a kanonikus alak,
+ekkor pedig a két leírás pontosan ugyanazt az adatgráfot jelöli, tehát
+az egyiket minden további nélkül lehet használni a másik helyett.
+
+A gráf specifikációjához minden esetben szükségünk lesz egy konstans
+szimbólumokból (nem üres sztringek, melyek nagybetûvel kezdõdnek)
+álló, valamint egy csúcs azonosítókból (kisbetûvel kezdõdõ nemüres
+sztringek) és csúcs konstansokból (a ,,@'' kukac karakterrel kezdõdõ
+sztringek) álló halmazra.
+
+\subsubsection{Kanonikus alak}
+
+Egy adatgráf kanonikus alakját a következõ szintaxissal definiáljuk:
+
+\vspace{1cm}
+\begin{tabular}{l@{\hspace{0.5cm}=\hspace{0.5cm}}l}
+  \textit{Graph}   & \textit{NodeDef} \{\textbf{','} \textit{NodeDef}\} ; \\
+  \textit{NodeDef} & \textit{Nodeid} \textbf{':'} \textit{Node} ; \\
+  \textit{Node}    & \textit{Symbol} \{\textit{Arg}\}  |
+  \textit{EmptyNode} ; \\
+  \textit{Symbol}  & Constant ; \\
+  \textit{Arg}     & \textit{Nodeid} ; \\
+  \textit{Nodeid}  & NodeidVariable | NodeidConstant ; \\
+  \textit{EmptyNode} & \textbf{'$\bot$'} ;
+\end{tabular}
+\vspace{1cm}
+
+Egy adatgráf tehát csúcs definíciók (\emph{NodeDef}) egy halmaza. A
+gráfban minden csúcshoz tartozik egy egyedi azonosító (\emph{Nodeid}),
+mely vagy ,,@''-cal kezdõdik (\emph{NodeidConstant} --- konstans),
+vagy kisbetûvel (\emph{NodeidVariable} --- változó). Egy csúcs
+definíciójához (\emph{NodeDef}) kell egy ilyen csúcs azonosító, majd
+egy ,,:'' karakter után következik a csúcs leírása
+(\emph{Node}). Minden csúcshoz tartozik egy konstans szimbólum
+(\emph{Symbol}), melynek esetleg argumentumai (\emph{Arg})
+lehetnek. Ezek az argumentumok tulajdonképpen csúcs azonosítók, melyek
+definiálják az éleket a gráf ábrázolt formájában.
+
+\begin{pelda}
+  \Aref{fig:lstdatag} ábrán található adatgráf kanonikus alakja (a
+  $(:)$ konstruktornak most a két paraméteres \emph{Cons}, a $[]$
+  konstruktornak pedig a \emph{Nil} felel meg):
+
+  \begin{tabular}{l@{:\hspace{0.5cm}}l}
+      @1 & \emph{Cons} @2 @3, \\
+      @2 & 71, \\
+      @3 & \emph{Cons} @4 @5, \\
+      @4 & 72, \\
+      @5 & \emph{Nil}
+  \end{tabular}
+
+  Itt tehát nincsenek változó csúcs azonosítók, csak konstansok (@1
+  \dots @5), valamint a konstans szimbólumok a következõk:
+  \emph{Cons}, 71, 72, \emph{Nil}.
+\end{pelda}
+
+\subsection{Szemantika}
+
+Tulajdonságok, kapcsolódó definíciók.
+
+\section{Átíró rendszerek}
+
+\subsection{Szintaxis}
+
+Definíció, kanonikus alak, rövidített alak, szabályok, \dots
+
+\subsection{Szemantika}
+
+Kapcsolódó definíciók, elnevezések, minták, \dots
+
+\section{Gráfátírás}
+
+Mintaillesztés, kötések létrejötte, algoritmus, lépések, példa
+Kapcsolódó definíciók, normál formák, redukciós sorozatok, stratégiák
+FGRS
 
 %% Local Variables:
 %% coding: latin-2
