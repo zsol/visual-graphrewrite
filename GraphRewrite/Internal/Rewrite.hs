@@ -51,17 +51,17 @@ module GraphRewrite.Internal.Rewrite
                                  flatApp              = SApp flatExpr flatArgs
                              in Step (flatApp,g) [rewriteStepFine rs flatApp g]
         SApp (SFun ar f) l -> funInApp f ar l
-        _                  -> Node (e,g)
+        _                  -> Step (e,g) []
       where
         funInApp f ari args = case I.lookup f (rules rs) of
                                 Just rls
                                     | length args == ari -> case firstMatchFine rs g args rls of
                                                              Just ((e,g), trees) -> Step (e,g) (trees ++ [rewriteStepFine rs e g])
-                                                             Nothing    -> Node (e,g)
+                                                             Nothing    -> Step (e,g) []
                                     | length args >  ari -> case firstMatchFine rs g (take ari args) rls of --TODO: do this properly
                                                              Just ((e,g), trees) -> Step (e,g) (trees ++ [rewriteStepFine rs e g])
-                                                             Nothing    -> Node (e,g)
-                                    | otherwise          -> Node (e,g)
+                                                             Nothing    -> Step (e,g) []
+                                    | otherwise          -> Step (e,g) []
                                 Nothing -- no function definition found -> probably a delta function
                                     -> let
                                           steps = map rewriteExpFine args

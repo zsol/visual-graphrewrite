@@ -82,10 +82,10 @@ where
 
   makeGraph [] = I.empty
 
-  invMakeExpr :: Expr -> SH.Expr Int
+{-  invMakeExpr :: Expr -> SH.Expr Int
   invMakeExpr (SCons c) = SH.Cons c
   invMakeExpr (SLit l)  = SH.Lit l
   invMakeExpr (SFun _ f) = SH.Var f
   invMakeExpr (SHole v) = SH.Lit ("THIS IS A BUG - " ++ show v)
   invMakeExpr (SApp x xs) = SH.Apply (invMakeExpr x : map invMakeExpr xs)
-
+-}

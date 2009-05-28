@@ -46,12 +46,30 @@ where
   type PointedGraph = (Expr, Graph)
 
   -- | A tree which represents a graph rewrite procedure. Every node has an arbitrary amount of children, the rightmost node is usually the head normal form.
-  data RewriteTree = Node PointedGraph | Step PointedGraph [RewriteTree]
+  data RewriteTree = Step PointedGraph [RewriteTree]
               deriving (Show)
+
+  -- | Branch point in a 'RewriteTree'. First component is the node
+  -- which is stored inside the branch. Second component is a list of
+  -- trees to the left of the selected node in reverse order. Third
+  -- component is a list of trees to the right of the selected node in
+  -- normal order.
+  data RewriteBranch = RewriteBranch
+      { node :: PointedGraph   -- ^ Node which is stored inside the branch.
+      , left :: [RewriteTree]  -- ^ List of 'RewriteTree's to the left
+                               --   of the selected node in reverse order.
+      , rght :: [RewriteTree]  -- ^ List of 'RewriteTree's to the right
+                               --   of the selected node in normal order.
+      }
+
+  -- | A 'Context' represents a well, er... context around a
+  -- particular subtree of a 'RewriteTree'. This means that from that
+  -- subtree and its 'Context', one can reconstruct the entire
+  -- 'RewriteTree'. This is a one-hole context.
+  type Context = [RewriteBranch]
 
   -- | Gets the rightmost 'PointedGraph' from a 'RewriteTree'.
   lastGraph :: RewriteTree -> PointedGraph
-  lastGraph (Node pg)    = pg
   lastGraph (Step pg []) = pg
   lastGraph (Step _ trs) = lastGraph $ last trs
 
@@ -81,7 +99,7 @@ where
       -> Expr -- ^ Expression to be dereferenced. If not an SRef then this will be the result.
       -> Graph -- ^ Images of SRefs
       -> Expr -- ^ Dereferenced expression.
-  deref rs e@(SRef ref) im = deref rs (deref' rs e im) im
+  deref rs e@(SRef _) im = deref rs (deref' rs e im) im
   deref _ e _ = e
 
   -- | Replace SRef structure for the referenced expression. This is a shallow implementation. See also: 'deref'.
