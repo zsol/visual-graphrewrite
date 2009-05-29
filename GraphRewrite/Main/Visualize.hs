@@ -9,7 +9,7 @@ import Data.GraphViz
 import Data.Supply
 import Data.Graph.Inductive.Tree
 import qualified Data.Graph.Inductive.Graph as IG
-import Data.IntMap hiding (map)
+import Data.IntMap hiding (map, split)
 import Data.Maybe
 import Prelude hiding (lookup, exp)
 
@@ -70,7 +70,7 @@ graphToGr ids rs (e, g) = insExpr (-1) ids e IG.empty
                    Just r -> r
                    _ -> case lookup r (rules rs) of
                          Just [r] -> exp r
-                         _ -> error $ "Undefined reference: " ++ show r ++ ". Check your source."
+                         _ -> SLit $ "Undefined reference: " ++ show r
           (ids1, ids2) = split2 ids
         in
           if i < 0 then
@@ -81,15 +81,24 @@ graphToGr ids rs (e, g) = insExpr (-1) ids e IG.empty
                   gr
               else
                   IG.insEdge (i, r, "") $ insExpr r ids2 refe $ IG.insNode (i, genName rs e) gr
+      insExpr i ids e@(SApp f args) gr = let
+          (idsh:idst) = split ids
+          (idsh1, idsh2) = split2 idsh
+          (idst1, idst2) = splitAt (length args) idst
+          (fnode, _) = if i < 0 then (genLNode idsh2 rs f) else (i,"")
+          nodeids = map (\(id,e) -> fst $ genLNode id rs e) (zip idst1 args)
+          nodes = foldl (\a (b1,b2,b3) -> insExpr b1 b2 b3 a) (insExpr i idsh1 f gr) (zip3 (reverse nodeids) idst2 (reverse args))
+        in
+          foldl (\a (b1,b2) -> IG.insEdge (fnode, b1, b2) a) nodes (zip nodeids (map show [1..]))
       insExpr i ids e gr
           | i < 0 = IG.insNode (genLNode ids rs e) gr
-          | otherwise = IG.insNode (i, genName rs e) gr
+          | otherwise = if IG.gelem i gr then gr else IG.insNode (i, genName rs e) gr
 
 
 grToDot :: Gr String String -> DotGraph
-grToDot gr = graphToDot gr [] 
-        (const [FontColor (RGB 0x1f 0x33 0xb3), FontSize 12, Shape BoxShape, FontName "Helvetica"]) 
-        (const [Style Dotted, FontName "Helvetica", ArrowHead Normal, ArrowSize 0.3]) 
+grToDot gr = graphToDot gr []
+        (\(_,l) -> [FontColor (RGB 0x1f 0x33 0xb3), FontSize 12, FontName "Helvetica", Label l])
+        (\(_,_,l) -> [FontName "Helvetica", ArrowHead Normal, ArrowSize 0.3, Label l])
 
 renderDot :: Supply Int -> RewriteSystem -> PointedGraph -> String
 renderDot = (((show . grToDot) .) .) . graphToGr
