@@ -13,7 +13,7 @@ import Data.IntMap hiding (map, split)
 import Data.Maybe
 import Prelude hiding (lookup, exp)
 
-lookupName :: RewriteSystem -> Int -> [Char]
+lookupName :: RewriteSystem -> Int -> String
 lookupName rs i = fromMaybe "UNDEFINED" $ lookup i (names rs)
 
 -- | RewriteSystem needed for identifier names.
@@ -81,15 +81,15 @@ graphToGr ids rs (e, g) = insExpr (-1) ids e IG.empty
                   gr
               else
                   IG.insEdge (i, r, "") $ insExpr r ids2 refe $ IG.insNode (i, genName rs e) gr
-      insExpr i ids e@(SApp f args) gr = let
+      insExpr i ids (SApp f args) gr = let
           (idsh:idst) = split ids
           (idsh1, idsh2) = split2 idsh
           (idst1, idst2) = splitAt (length args) idst
-          (fnode, _) = if i < 0 then (genLNode idsh2 rs f) else (i,"")
+          (fnode, _) = if i < 0 then genLNode idsh2 rs f else (i,"")
           nodeids = map (\(id,e) -> fst $ genLNode id rs e) (zip idst1 args)
           nodes = foldl (\a (b1,b2,b3) -> insExpr b1 b2 b3 a) (insExpr i idsh1 f gr) (zip3 (reverse nodeids) idst2 (reverse args))
         in
-          foldl (\a (b1,b2) -> IG.insEdge (fnode, b1, b2) a) nodes (zip nodeids (map show [1..]))
+          foldl (\a (b1,b2) -> IG.insEdge (fnode, b1, b2) a) nodes (zip nodeids (map show ([1..] :: [Int])))
       insExpr i ids e gr
           | i < 0 = IG.insNode (genLNode ids rs e) gr
           | otherwise = if IG.gelem i gr then gr else IG.insNode (i, genName rs e) gr

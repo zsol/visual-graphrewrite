@@ -105,7 +105,7 @@ moveDown = flip modifyMVar_ $ \ state ->
              case current state of
                Step _ [] -> return state
                Step g (h:t) -> return state { current = h
-                                           , history = (RewriteBranch g [] t) : history state
+                                           , history = RewriteBranch g [] t : history state
                                            }
 
 
@@ -124,7 +124,7 @@ moveRight = flip modifyMVar_ $ \ state ->
                 (RewriteBranch _ _ []:_)      -> return state
                 (RewriteBranch n l (rh:rt):t) ->
                     return state { current = rh
-                                 , history = (RewriteBranch n ((current state) : l) rt) : t
+                                 , history = RewriteBranch n (current state : l) rt : t
                                  }
 
 moveLeft :: MVar State -> IO ()
@@ -134,7 +134,7 @@ moveLeft = flip modifyMVar_ $ \ state ->
                (RewriteBranch _ [] _ : _) -> return state
                (RewriteBranch n (lh:lt) r : t) ->
                    return state { current = lh
-                                , history = (RewriteBranch n lt ((current state) : r)) : t
+                                , history = RewriteBranch n lt (current state : r) : t
                                 }
 
 refresh :: MVar State -> MVar Session -> IO Bool

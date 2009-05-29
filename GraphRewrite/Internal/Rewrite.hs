@@ -36,6 +36,9 @@ module GraphRewrite.Internal.Rewrite
                           Nothing      -> []
                           Just p@(e,g) -> p : rewriteSteps rs e g
 
+  rewriteStepsFine :: RewriteSystem -> Expr -> Graph -> RewriteTree
+  rewriteStepsFine rs e g = Step (e,g) [rewriteStepFine rs e g]
+
   -- | Does the rewriting on a specified expression and returns detailed results.
   rewriteStepFine
       :: RewriteSystem -- ^ The context.
@@ -55,9 +58,10 @@ module GraphRewrite.Internal.Rewrite
       where
         funInApp f ari args = case I.lookup f (rules rs) of
                                 Just rls
-                                    | length args == ari -> case firstMatchFine rs g args rls of
-                                                             Just ((e,g), trees) -> Step (e,g) (trees ++ [rewriteStepFine rs e g])
-                                                             Nothing    -> Step (e,g) []
+                                    | length args == ari ->
+                                        case firstMatchFine rs g args rls of
+                                          Just ((e',g'), trees) -> Step (e,g) (trees ++ [rewriteStepFine rs e' g'])
+                                          Nothing    -> Step (e,g) []
                                     | length args >  ari -> case firstMatchFine rs g (take ari args) rls of --TODO: do this properly
                                                              Just ((e,g), trees) -> Step (e,g) (trees ++ [rewriteStepFine rs e g])
                                                              Nothing    -> Step (e,g) []

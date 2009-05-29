@@ -12,12 +12,9 @@ Usage:
   Press space to see the right-hand-sides of the graph rewrite rules.
 
 Short term plans (this version is expected at the end of May):
-- Show the graph rewrite process instead of the rhs of rewrite rules.
-+ Allow tuples and lists.
 - Allow data declarations.
 - Allow more built-in functions.
 + User defined start expression for the graph reduction.
-- To be usable as a library.
 
 Plans for the final version:
 - Allow type classes.
