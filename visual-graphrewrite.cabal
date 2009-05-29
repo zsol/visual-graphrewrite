@@ -69,7 +69,8 @@ executable visual-graphrewrite
                      GraphRewrite.Internal.DeltaFunctions,
                      GraphRewrite.Main.CmdLineOpts,
                      GraphRewrite.Main.Visualize,
-                     GraphRewrite.Main.Welcome
+                     GraphRewrite.Main.Welcome,
+                     GraphRewrite.Main.Utils
         ghc-options:      -Wall -fno-warn-name-shadowing -fno-warn-incomplete-patterns
 
 
