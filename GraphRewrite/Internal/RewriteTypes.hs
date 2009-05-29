@@ -12,7 +12,7 @@ where
   -- | An expression.
   data Expr
       = SCons Int        -- ^ A constructor token. May occur on either the left or right side of a rule.
-      | SFun  Arity Int  -- ^ A function token. May only occur on the right side of a rule (definition).
+      | SFun  Arity Int  -- ^ A function token. May only occur on the right side of a rule (definition). Arity is pretty redundant at the moment.
       | SLit String      -- ^ String literal. Usually handled the same way as a 0 argument constructor.
       | SHole Int        -- ^ Represents join points in a rule. Should not appear in data graphs.
       | SRef Int         -- ^ Refers to an other expressions. Sharing can be expressed with this token in data graphs and right side of rules.
