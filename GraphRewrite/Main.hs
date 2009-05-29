@@ -17,6 +17,7 @@ import Data.Supply
 import qualified Data.Version
 
 import qualified Data.IntMap as I
+import Data.Maybe
 
 import Control.Concurrent (forkIO, yield)
 import Control.Arrow hiding (left)
@@ -61,12 +62,12 @@ main = do
     then putStrLn $ "version " ++ Data.Version.showVersion version
     else do
       tmp <- readInput (inputFile options)
-      let mod = parseModule tmp
-      when (debug options) $ pprint $ convParse mod
+      let sh = convParse $ parseModuleWithMode (ParseMode (fromMaybe "stdin" $ inputFile options)) tmp
+      when (debug options) $ pprint sh
       ids <- newEnumSupply
       let (deltaIds, ids2, ids3) = split3 ids
       let (Ok (predefBinds,_,_)) = distributeIds predef deltaIds        -- distribute delta function ids
-      case rename' predefBinds (convParse $parseModule tmp) ids2 of -- scope analysis
+      case rename' predefBinds sh ids2 of -- scope analysis
         Error f   -> error $ "Error: " ++ f
         Ok (names,module_) -> do
            let rs = makeRewriteSystem module_ names
@@ -79,17 +80,26 @@ main = do
 
 
 startRewriting :: String -> RewriteSystem -> Supply Int -> IO (MVar State)
-startRewriting term rs ids = newState rs ids tree
+startRewriting term rs ids = newState rs ids' tree
     where
       tree = rewriteStepFine rs expr gra
-      (expr,gra) = case I.toList (I.filter (== term) (names rs)) of
+      gra = I.fromList []
+      (ids', ids'') = split2 ids
+      binds = namesToBinds (names rs)
+      sh = rename' binds (convParse $ parseModuleWithMode (ParseMode "CmdLine Argument") ("tHiSiSaVeRyBaDaNDuGLyHaCK = " ++ term)) ids''
+      expr = case sh of
+               Ok (_, m) -> exp $ head $ I.findMin $ rules $ makeRewriteRules m
+               Error err -> error $ "Error during parsing CmdLine argument: " ++ err
+
+
+{-case I.toList (I.filter (== term) (names rs)) of
                        [(tid, _)] -> case I.lookup tid (rules rs) of
                                       Just [r] -> (exp r, graph r)
                                       Just _ -> error $ "Ambiguous reference to term: " ++ term ++ ". Make sure there is only one rule associated with it in the source file. (Maybe you want to examine another term?)"
                                       Nothing -> error $ "No such term `" ++ term ++ "' found in the source file, it is probably defined elsewhere. (Did you want to examine a delta function?)"
                        [] -> error $ "Absolutely nothing found about this term: " ++ term ++ ". You probably have a typo somewhere."
                        _  -> error $ "Ambiguous reference to term: " ++ term ++ ". This shouldn't happen if your source file compiles with a Haskell compiler."
-
+-}
 
 startRuleDefs :: RewriteSystem -> Supply Int -> IO (MVar State)
 startRuleDefs rs ids = newState rs ids tree

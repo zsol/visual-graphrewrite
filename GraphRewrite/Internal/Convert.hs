@@ -16,7 +16,7 @@ import Language.Haskell.Parser
 
 -- | Converts a 'ParseResult' as returned by 'Language.Haskell.Parser' to our internal 'SimpModule' format. Returns an empty 'SimpModule' if the parse failed.
 convParse :: ParseResult HsModule -> SimpModule String
-convParse (ParseFailed _ _) = []
+convParse (ParseFailed loc err) = error $ "Parse of module failed at " ++ show loc ++ " with message: " ++ err
 convParse (ParseOk m)       = convModule m
 
 splitDecls :: [HsDecl] -> ([HsDecl], [HsDecl])
