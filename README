@@ -14,11 +14,13 @@ Usage:
 Short term plans (this version is expected at the end of May):
 - Allow data declarations.
 - Allow more built-in functions.
-+ User defined start expression for the graph reduction.
 
-Plans for the final version:
+Future plans:
 - Allow type classes.
 - Allow module imports.
+- Allow partial applications and slices.
+- Better handling of higher order functions.
+- Pattern parsing improvements.
 - Read the Prelude.
 - Extend to work with any Haskell 98 source file.
 - Control the graph rewrite process (control over which functions are atomic).
