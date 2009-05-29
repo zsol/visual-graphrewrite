@@ -26,7 +26,7 @@ showIntList (h:t) = showInt h ++ ", " ++ showIntList t
 --primesbelow n = showIntList (eratos (enumFT 2 n))
 
 --f :: Int -> Int -> Bool
-f h x = not ((eqInt) (mod x h) 0)
+f h x = not ((mod x h) `eqInt` 0)
 
 --eratos :: [Int] -> [Int]
 eratos (h:t) = h : (fil (f h) (eratos t))
