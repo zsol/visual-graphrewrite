@@ -74,12 +74,12 @@ main = do
            when (debug options) $ pprint rs
            mstate <- case mainTerm options of
              Nothing -> startRuleDefs rs ids3
-             Just tm -> startRewriting tm (stepNum options) rs ids3
+             Just tm -> startRewriting tm rs ids3
            configureWindow basicKeyBindings mstate msession
 
 
-startRewriting :: String -> Int -> RewriteSystem -> Supply Int -> IO (MVar State)
-startRewriting term _ rs ids = newState rs ids tree
+startRewriting :: String -> RewriteSystem -> Supply Int -> IO (MVar State)
+startRewriting term rs ids = newState rs ids tree
     where
       tree = rewriteStepFine rs expr gra
       (expr,gra) = case I.toList (I.filter (== term) (names rs)) of

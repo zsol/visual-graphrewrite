@@ -11,7 +11,6 @@ data Options = Options
     , isVerbose     :: Bool
     , debug         :: Bool
     , mainTerm      :: Maybe String     -- ^ Name of the main term on which to perform rewriting (example: result)
-    , stepNum       :: Int              -- ^ How many rewrite steps should we show at most
     }
 
 defaultOptions :: Options
@@ -22,7 +21,6 @@ defaultOptions = Options
     , isVerbose     = False
     , debug         = False
     , mainTerm      = Nothing
-    , stepNum       = 50
     }
 
 ----------------------------------- possible options
@@ -35,7 +33,6 @@ options =
     , Option ['o']     ["output"]  (ReqArg (\f r -> r {outputFile = Just f}) "FILE")  "output FILE"
     , Option ['i']     ["input"]   (ReqArg (\f r -> r {inputFile  = Just f}) "FILE")  "input FILE"
     , Option ['m']     ["main"]    (ReqArg (\m r -> r {mainTerm = Just m}) "TERM") "main term on which to perform rewriting"
-    , Option ['n']     ["stepnum"] (ReqArg (\n r -> r {stepNum = read n}) "NUM") "how many rewrite steps should we show at most"
     ]
 
 ----------------------------------- parse options
