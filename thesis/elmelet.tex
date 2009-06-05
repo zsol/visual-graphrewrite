@@ -46,14 +46,14 @@ Egy adatgráf kanonikus alakját a következõ szintaxissal definiáljuk:
 
 \vspace{1cm}
 \begin{tabular}{l@{\hspace{0.5cm}=\hspace{0.5cm}}l}
-  \textit{Graph}   & \textit{NodeDef} \{\textbf{','} \textit{NodeDef}\} ; \\
-  \textit{NodeDef} & \textit{Nodeid} \textbf{':'} \textit{Node} ; \\
+  \textit{Graph}   & \textit{NodeDef} | \textit{NodeDef} \textbf{','} \textit{Graph} \\
+  \textit{NodeDef} & \textit{Nodeid} \textbf{':'} \textit{Node} \\
   \textit{Node}    & \textit{Symbol} \{\textit{Arg}\}  |
-  \textit{EmptyNode} ; \\
-  \textit{Symbol}  & Constant ; \\
-  \textit{Arg}     & \textit{Nodeid} ; \\
-  \textit{Nodeid}  & NodeidVariable | NodeidConstant ; \\
-  \textit{EmptyNode} & \textbf{'$\bot$'} ;
+  \textit{EmptyNode} \\
+  \textit{Symbol}  & Constant \\
+  \textit{Arg}     & \textit{Nodeid} \\
+  \textit{Nodeid}  & NodeidVariable | NodeidConstant \\
+  \textit{EmptyNode} & \textbf{'$\bot$'}
 \end{tabular}
 \vspace{1cm}
 
@@ -168,11 +168,128 @@ gondolatmenetet vázolja \aref{fig:grafekvizo} ábra.
 
 \section{Átíró rendszerek}
 
+Egy gráfátíró rendszer lényege az, hogy jól definiált módon tudjunk
+adatgráfokat manipulálni. A rendszer átírási szabályok halmaza,
+melyeket hasonlóan fogunk megközelíteni, mint fentebb az adatgráfokat:
+elõször definiáljuk a kanonikus alakjukat, ezzel szintaxist adva a
+gráfátíró rendszereknek, majd megadjuk a hozzájuk tartozó szemantikát.
+
 \subsection{Szintaxis}
 
-Definíció, kanonikus alak, rövidített alak, szabályok, \dots
+Ebben az alpontban megadjuk a gráfátíró rendszerek kanonikus alakját,
+majd egy példával rámutatunk, hogy mennyire kényelmetlen ebben a
+formában kezelni azokat, úgyhogy megadunk egy rövidített formát is.
 
+\subsubsection{Kanonikus alak}
+
+A gráfátíró rendszerek szintaxisa tehát a következõképpen írható le:
+
+\begin{tabular}{l@{\hspace{0.5cm}=\hspace{0.5cm}}l}
+  \textit{CanonicalGRS} & \textit{Rule} | \textit{Rule} \textit{CanonicalGRS}\\
+  \textit{Rule} & \textit{RedexPattern} \textbf{'$\rightarrow$'} \{\textit{Contractum}\} \textit{Redirection} \\
+  \textit{Contractum} & \textit{ContractumPattern} | \textit{ContractumPattern} \textbf{','} \textit{Contractum} \\
+  \textit{RedexPattern} & Graph \\
+  \textit{ContractumPattern} & Graph \\
+  \textit{Redirection} & Nodeid \textbf{'$\leftarrow$'} Nodeid
+\end{tabular}
+
+Ahol a \emph{Nodeid} és a \emph{Graph} definíciója az adatgráfoknál
+megadottal egyezik meg. A fenti definícióból is látszik, hogy a
+szabályok az $r : \alpha_r \rightarrow \beta_r, \varphi_r$ alakot
+követik, ahol $\beta_r$ opcionális. Ebben a jelölésben az $\alpha_r$-t
+nevezik \emph{redex mintá}nak, a nem kötelezõ $\beta_r$ neve
+\emph{contractum minta}, a $\varphi_r$ pedig az átirányítás vagy
+\emph{redirekció}.
+
+Egy szabályban minden csúcs azonosító legfeljebb egyszer lehet
+definiálva, illetve a jobb oldalon szereplõ azonosítókhoz kell
+tartozzon ugyanezen a jobb oldalon definíció vagy szerepelniük kell a
+bal oldalon. A redirekció bal oldalán található azonosítónak mindig
+meg kell egyeznie a redex minta gyökerével (pontosabban annak
+azonosítójával), a jobb oldali csúcs azonosító pedig vagy a contractum
+minta gyökere, vagy egy olyan azonosító, ami szerepel a redex
+mintában.
+
+Az elsõ szimbólumot a redex mintában \emph{függvény szimbólum}nak
+hívjuk. Az a szimbólum, mely egyik minta elsõ elemeként se szerepel, a
+\emph{konstruktor szimbólum}. Természetesen függvény szimbólumok nem
+csak a minta fejében szerepelhetnek, hanem bárhol máshol a mintában.
+
+\begin{pelda}
+  A következõ pár sor Haskell kód definiál egy olyan függvényt, ami
+  egy lista elsõ elemét adja vissza, egy definíció szerint
+  megvalósított faktoriális függvényt, illetve egy kezdõszimbólumot.
+  \begin{lstlisting}
+    head (a:b) = a
+
+    fact 0 = 1
+    fact n = n * fact (n-1)
+
+    start = fact (head [1000])
+  \end{lstlisting}
+  Ebbõl a pár sorból felírhatunk egy olyan gráfátíró rendszert,
+  melynek kanonikus alakja:
+
+  \begin{tabular}{lcl}
+    $r$: Head $x$, \\
+    $x$: Cons $a$ $b$ & $\rightarrow$ & $r \leftarrow a$\\
+    \\
+    $r$: Fact $x$, \\
+    $x$: 0 & $\rightarrow$ & $r'$: 1, $r \leftarrow r'$\\
+    \\
+    $r$: Fact $n$ & $\rightarrow$ & $r'$: $*$ $n$ $u$, $u$: Fact $v$, \\
+    & & $v$: $-$ $n$ $w$, $w$: 1, \\
+    & & $r \rightarrow r'$ \\
+    \\
+    $r$: Start & $\rightarrow$ & $r'$: Fact $a$, $a$: Head $b$, \\
+    & & $b$: Cons $c$ $d$, $c$: 1000, $d$: Nil \\
+    & & $r \rightarrow r'$
+  \end{tabular}
+\end{pelda}
+
+\subsubsection{Rövidített alak}
+
+Mint a fenti példákból látható, az adatgráfok és a gráfátíró
+rendszerek kanonikus alakját nehézkes olvasni, bonyolultabb esetekben
+sok benne a redundáns információ. Ez adja a motivációt ahhoz, hogy
+definiáljuk ezeknek egy úgynevezett rövidített alakját. Ebbõl a
+rövidített alakból mindig automatikusan meghatározható egy kanonikus
+alak mind a gráfok, mind az átíró rendszerek esetében.
+
+\begin{tabular}{lcl}
+  \textit{GraphRewriteSystem} &=& \textit{Rule} | \textit{Rule} \textit{GraphRewriteSystem} \\
+  \textit{Rule} &=& \textit{RedexPattern} \textbf{'$\rightarrow$'} \textit{ContractumPattern} \{\textbf{','} \textit{Redirection}\} \\
+  & & | \textit{RedexPattern} \textbf{'$\rightarrow$'} \textit{Redirection} \\
+  \textit{RedexPattern} &=& \textit{Graph} \\
+  \textit{ContractumPattern} &=& \textit{Graph} \\
+  \textit{Redirection} &=& \textit{Nodeid} \textbf{'$\leftarrow$'} \textit{Nodeid} | \textit{Nodeid} \\
+  \textit{Graph} &=& \{\textit{Nodeid} \textbf{':'}\} \textit{Node} | \{\textit{Nodeid} \textbf{':'}\} \textit{Node} \textbf{','} \textit{Graph} \\
+  \textit{Nodeid} &=& NodeidVariable | NodeidConstant \\
+  \textit{Node} &=& \textit{Symbol} \{\textit{Arg}\} | \textit{EmptyNode} \\
+  \textit{Symbol} &=& Constant \\
+  \textit{Arg} &=& \textit{Nodeid} | \{\textit{Nodeid} \textbf{','}\} \textit{Symbol} | \{\textit{Nodeid} \textbf{','}\} \textbf{'('} \textit{Node} \textbf{')'} \\
+  \textit{NodeDef} &=& \textit{Nodeid} \textbf{':'} \textit{Node} \\
+  \textit{EmptyNode} &=& \textbf{$\bot$}
+\end{tabular}
+
+\begin{pelda}
+  Az elõzõ példa gráfátíró rendszer most rövidített alakban:
+
+  \begin{tabular}{lcl}
+    Head (\text{Cons} $a$ $b$) &\hspace{0.5cm}$\rightarrow$\hspace{0.5cm}& $a$ \\
+    \\
+    Fact 0 &\hspace{0.5cm}$\rightarrow$\hspace{0.5cm}& 1 \\
+    Fact $n$ &\hspace{0.5cm}$\rightarrow$\hspace{0.5cm}& $*$ $n$ (Fact ($-$ $n$ 1)) \\
+    \\
+    Start &\hspace{0.5cm}$\rightarrow$\hspace{0.5cm}& Fact (Head (Cons 1000 Nil))
+  \end{tabular}
+
+\end{pelda}
 \subsection{Szemantika}
+
+A minták nyílt gráfok.
+A redirekció azt mondja meg, hogy melyik csúcsba menõ éleket melyikbe
+kell átirányítani.
 
 Kapcsolódó definíciók, elnevezések, minták, \dots
 
