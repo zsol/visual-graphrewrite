@@ -88,7 +88,83 @@ definiálják az éleket a gráf ábrázolt formájában.
 
 \subsection{Szemantika}
 
-Tulajdonságok, kapcsolódó definíciók.
+Az adatgráfok szemantikáját a kanonikus alakjuk figyelembevételével,
+azok alapján fogjuk megadni.
+
+Minden adatgráfnak létezik egy kitüntetett csúcsa, melyet a gráf
+\emph{gyökeré}nek hívunk. A kanonikus alakban mindig ezt a csúcsot
+soroljuk fel elõször. Egy adatgráf \emph{részgráf}jának kanonikus
+alakja az eredeti gráf kanonikus alakjában található csúcshalmaz
+részhalmazából áll. Egy \emph{út} a gráfban olyan csúcs azonosítók
+sorozata, melyben az elsõ kivételével minden azonosító a közvetlenül
+megelõzõ azonosítóhoz tartozó csúcs egyik argumentuma. Az út $A$-ból
+$B$-be megy, ha $A$ azonosítója az elsõ, $B$ azonosítója pedig az
+utolsó a sorozatban. A gráfban \emph{kör}nek hívjuk azokat az utakat,
+melyeknek ugyanaz az elsõ és az utolsó csúcs azonosítójuk. A gráf
+körmentes, ha nincs benne kör. Egy $B$ csúcs \emph{elérhetõ} $A$-ból,
+ha létezik a gráfban út $A$-ból $B$-be. Ha minden csúcs elérhetõ a
+gyökérbõl, akkor a gráf \emph{összefüggõ}. Egy adatgráfot
+\emph{zárt}nak hívunk, ha nincs benne változó csúcs azonosító,
+egyébként \emph{nyílt}nak. Egy gráf $n$ \emph{csúcstól kezdõdõ
+  részgráfja} az a $g$ összefüggõ részgráf, melynek gyökere $n$, és
+tartalmazza mindazokat a csúcsokat, melyek elérhetõek $n$-bõl.
+
+\begin{megj}
+  Tartsuk szem elõtt, hogy az adatgráfoknál egy úthoz tartozik annak
+  egy irányítása is, tehát a köröknél, illetve az összefüggõségnél is
+  figyelembe kell venni ezt az irányítást. Ez a fogalomrendszer nagyon
+  hasonlít az irányított gráfoknál szokásoshoz, tulajdonképpen itt is
+  errõl van szó, mint azt a bevezetõben említettük.
+  Megjegyzendõ továbbá, hogy gráfátíró rendszerekben az összes gráf,
+  beleértve a szabályokat is, mindig összefüggõ.
+\end{megj}
+
+\begin{pelda}
+ \Aref{fig:lstdatag} ábrán látható adatgráf például összefüggõ, de
+ körmentes és zárt.
+
+ \begin{figure}[htb]
+   \begin{center}
+     \caption{Egy végtelen hosszú, végtelenül egyszerû lista
+       adatgráfja}
+     \includegraphics[height=0.3\textheight]{eps/grw_new_28.eps}
+   \end{center}
+   \label{fig:inflist}
+ \end{figure}
+ \Aref{fig:inflist} ábrán található adatgráf a végtelen hosszú, csupa
+ tizenegyeseket tartalmazó listához tartozik. Kanonikus alakja:
+
+ \begin{tabular}{l@{:\hspace{0.5cm}}l}
+   @1 & \emph{Cons} @2 @1, \\
+   @2 & 11
+ \end{tabular}
+
+ Ez a gráf látható módon
+ véges (mint minden adatgráf), zárt, összefüggõ, és tartalmaz egy kört
+ (tehát hurokéleket természetesen megengedünk). Ebbõl a példából is
+ látszik a gráfátíró rendszerek (és azon belül egyelõre az adatgráfok)
+ kifejezõereje.
+\end{pelda}
+
+\begin{figure}[bh]
+  \begin{center}
+    \caption{Ekvivalens gráfok közti izomorfizmus}
+    \includegraphics[width=14cm]{eps/graf_ekv_izo.eps}
+  \end{center}
+  \label{fig:grafekvizo}
+\end{figure}
+
+Két zárt gráfot \emph{ekvivalens}nek nevezünk, ha a csúcs
+azonosítóktól eltekintve azonosak. Ez azt jelenti, hogy a két gráfnak
+ugyanaz a struktúrája, és a megfelelõ csúcsok ugyanazokat a
+szimbólumokat tartalmazzák. Formálisan, létezik egy $\varphi :
+\text{NodeidConstant} \rightarrow \text{NodeidConstant}$ bijekció,
+melyet ha alkalmazunk az egyik gráf kanonikus alakjában található
+csúcs azonosítókra, akkor a másik gráf kanonikus alakját
+kapjuk. Figyelembe véve azt, hogy az adatgráf és a kanonikus alakja
+között is megadható egy bijekció, ebbõl következik, hogy ha két gráf
+ekvivalens, akkor létezik köztük gyökértartó izomorfizmus. Ezt a
+gondolatmenetet vázolja \aref{fig:grafekvizo} ábra.
 
 \section{Átíró rendszerek}
 

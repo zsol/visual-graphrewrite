@@ -1,0 +1,17 @@
+digraph g {
+  rankdir = LR
+  ratio = 0.3
+  subgraph {
+    g1 [label = "gráf 1", shape = oval, fontsize = 18]
+    k1 [shape = egg, style = filled, label = ""]
+    g1 -> k1 [label = "kanonikus alak", dir = both, fontsize = 18]
+  }
+  subgraph {
+    k2 [shape = egg, style = filled, label = ""]
+    g2 [label = "gráf 2", shape = oval, fontsize = 18]
+    g2 -> k2 [label = "kanonikus alak", dir = both, fontsize = 18]
+  }
+
+  k1 -> k2 [label = "ekvivalens", minlen=3, dir = both, fontsize = 18]
+  g1 -> g2 [style = dotted, label = "izomorfizmus", minlen=3, dir = both, fontsize = 18]
+}
