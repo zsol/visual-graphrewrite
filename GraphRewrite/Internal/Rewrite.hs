@@ -75,22 +75,6 @@ module GraphRewrite.Internal.Rewrite
         rewriteExpFine = flip (rewriteStepFine rs) g
         realAri f = length $ patts $ head $ fromJust $ I.lookup f (rules rs)
 
-
-
-
-{-
-  rewriteStepFine
-      :: RewriteSystem -- ^ A rewrite system which contains rules
-      -> Expr          -- ^ Expression to be rewritten
-      -> Graph         -- ^ Graph showing images of references
-      -> [PointedGraph] -- ^ Just the resulting pointed graph or Nothing if rewriting is impossible.
-  --visszaadja az átírási lépéseket addig, amíg rewriteStep, de finomabban
-
-  rewriteStepFine rs e g = case rewriteStep' rs e g of
-     [] -> Nothing
-     l  -> last l
--}
-
   -- | Does a rewrite step on the specified expression maybe returning the result.
   rewriteStep
       :: RewriteSystem -- ^ A rewrite system which contains rules
