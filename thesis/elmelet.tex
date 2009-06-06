@@ -126,10 +126,9 @@ tartalmazza mindazokat a csúcsokat, melyek elérhetõek $n$-bõl.
  \begin{figure}[htb]
    \begin{center}
      \caption{Egy végtelen hosszú, végtelenül egyszerû lista
-       adatgráfja}
+       adatgráfja \label{fig:inflist}}
      \includegraphics[height=0.3\textheight]{eps/grw_new_28.eps}
    \end{center}
-   \label{fig:inflist}
  \end{figure}
  \Aref{fig:inflist} ábrán található adatgráf a végtelen hosszú, csupa
  tizenegyeseket tartalmazó listához tartozik. Kanonikus alakja:
@@ -148,10 +147,9 @@ tartalmazza mindazokat a csúcsokat, melyek elérhetõek $n$-bõl.
 
 \begin{figure}[bh]
   \begin{center}
-    \caption{Ekvivalens gráfok közti izomorfizmus}
+    \caption{Ekvivalens gráfok közti izomorfizmus \label{fig:grafekvizo}}
     \includegraphics[width=14cm]{eps/graf_ekv_izo.eps}
   \end{center}
-  \label{fig:grafekvizo}
 \end{figure}
 
 Két zárt gráfot \emph{ekvivalens}nek nevezünk, ha a csúcs
@@ -183,8 +181,10 @@ formában kezelni azokat, úgyhogy megadunk egy rövidített formát is.
 \subsubsection{Kanonikus alak}
 
 A gráfátíró rendszerek szintaxisa tehát a következõképpen írható le:
+\vspace{0.5cm}
 
 \begin{tabular}{l@{\hspace{0.5cm}=\hspace{0.5cm}}l}
+  \label{tab:canonicalgrs}
   \textit{CanonicalGRS} & \textit{Rule} | \textit{Rule} \textit{CanonicalGRS}\\
   \textit{Rule} & \textit{RedexPattern} \textbf{'$\rightarrow$'} \{\textit{Contractum}\} \textit{Redirection} \\
   \textit{Contractum} & \textit{ContractumPattern} | \textit{ContractumPattern} \textbf{','} \textit{Contractum} \\
@@ -192,13 +192,12 @@ A gráfátíró rendszerek szintaxisa tehát a következõképpen írható le:
   \textit{ContractumPattern} & Graph \\
   \textit{Redirection} & Nodeid \textbf{'$\leftarrow$'} Nodeid
 \end{tabular}
-
 Ahol a \emph{Nodeid} és a \emph{Graph} definíciója az adatgráfoknál
 megadottal egyezik meg. A fenti definícióból is látszik, hogy a
 szabályok az $r : \alpha_r \rightarrow \beta_r, \varphi_r$ alakot
 követik, ahol $\beta_r$ opcionális. Ebben a jelölésben az $\alpha_r$-t
 nevezik \emph{redex mintá}nak, a nem kötelezõ $\beta_r$ neve
-\emph{contractum minta}, a $\varphi_r$ pedig az átirányítás vagy
+\emph{kontraktum minta}, a $\varphi_r$ pedig az átirányítás vagy
 \emph{redirekció}.
 
 Egy szabályban minden csúcs azonosító legfeljebb egyszer lehet
@@ -206,7 +205,7 @@ definiálva, illetve a jobb oldalon szereplõ azonosítókhoz kell
 tartozzon ugyanezen a jobb oldalon definíció vagy szerepelniük kell a
 bal oldalon. A redirekció bal oldalán található azonosítónak mindig
 meg kell egyeznie a redex minta gyökerével (pontosabban annak
-azonosítójával), a jobb oldali csúcs azonosító pedig vagy a contractum
+azonosítójával), a jobb oldali csúcs azonosító pedig vagy a kontraktum
 minta gyökere, vagy egy olyan azonosító, ami szerepel a redex
 mintában.
 
@@ -231,6 +230,7 @@ csak a minta fejében szerepelhetnek, hanem bárhol máshol a mintában.
   melynek kanonikus alakja:
 
   \begin{tabular}{lcl}
+    \label{tab:headfactcanonical}
     $r$: Head $x$, \\
     $x$: Cons $a$ $b$ & $\rightarrow$ & $r \leftarrow a$\\
     \\
@@ -285,17 +285,267 @@ alak mind a gráfok, mind az átíró rendszerek esetében.
   \end{tabular}
 
 \end{pelda}
+
+Általában ezt a jobban olvasható alakot használják a számítások
+megadására, mivel szemantikusan ugyanazokat a szabályokat és gráfokat
+írja le, mint a megfelelõ kanonikus alak, sõt, két egyszerû
+automatizálható transzformációval meg is kaphatjuk a rövidített
+alakból a kanonikusat. További elõnye ennek a rövidítésnek, hogy jól
+le lehet vele írni az átírás közben történõ gráfredukálást. A
+transzformációs lépéseket röviden felvázoljuk, a részleteket az
+olvasóra bízzuk, de megtalálható a \cite{cleanbook} 162. és
+163. oldalán is.
+
+\begin{enumerate}
+  \item Beágyazott csúcs definíciók kiküszöbölése és csúcs azonosítók
+    nevesítése. A kanonikus formában nem engedtük meg a beágyazott
+    csúcs definíciókat, azokat explicite ki kellett írni, és nevet
+    adni nekik. Ez az egyik legnagyobb különbség a két alak között,
+    fõleg ezen múlik az olvashatóság.
+  \item A redirekció megadása. A redex minta gyökerét vagy a
+    kontraktum minta gyökerére irányítjuk, vagy egycsúcsos jobb oldal
+    esetén az egyetlen csúcs azonosítóra.
+\end{enumerate}
+
 \subsection{Szemantika}
 
-A minták nyílt gráfok.
-A redirekció azt mondja meg, hogy melyik csúcsba menõ éleket melyikbe
-kell átirányítani.
+A gráfátíró rendszerekben található minták nyílt gráfok, tehát
+mindegyikben mindig létezik legalább egy változó csúcs azonosító. Ez
+igaz a redex illetve a kontraktum mintákra is. A redirekció azt
+definiálja, hogy melyik csúcsba menõ éleket melyikbe kell átirányítani
+a szabály alkalmazása során. Ez tehát azt jelenti, hogy a
+$\rightarrow$ bal oldalán levõ csúcs azonosítónak megfelelõ csúcsba
+mutató éleket a szabály alkalmazása során a $\rightarrow$ jobb oldalán
+található azonosítónak megfelelõ csúcsba irányítjuk.
 
+A továbbiakban jelöljön $\gamma$ egy adatgráfot, $\rho$ pedig egy
+átírási rendszert. Elõször részletesen tárgyaljuk a redex mintákat és
+az illeszkedés fogalmát, majd rátérünk a gráfátírás menetére.
+
+\subsubsection{Redexek}
+
+Ahogy a korábban bemutatott gráfátíró rendszerek kanonikus
+szintaxisából (\ref{tab:canonicalgrs}) is látszik, a redex minták
+szintaktikusan ekvivalensek az adatgráfokkal. Egy különbséget viszont
+már fentebb is említettünk: a minták csak konstans szimbólumokból és
+változó csúcs azonosítókból állnak. Egy redex minta \emph{példányá}nak
+hívjuk az adatgráfnak azt a részgráfját, melyre létezik egy olyan
+leképezés a mintáról, ami a konstans szimbólumokra megszorítva
+identitás, és a csúcsok struktúráját megtartja. Ezt a példányt más
+néven a redex mintához tartozó \emph{redex}nek is nevezzük. Ebben az
+esetben azt mondjuk, hogy a redex minta és a megfelelõ átírási szabály
+\emph{illeszkedik} a redexre. Megjegyezzük, hogy az a tény egy adatgráf
+részgráfja redex-e vagy sem, attól függ, milyen átírási rendszerrel
+együtt vizsgáljuk a gráfot.
+
+Az illeszkedés fogalmának formális bevezetéséhez definiálnunk kell még
+pár fogalmat. Legyen $\IS$ (konstans) szimbólumok egy halmaza, $\IN$
+a csúcs azonosítók halmaza és $\IC$ egy $\IN \rightarrow \IS \times
+\IN^*$ függvény. Ekkor $\IC$ egy adatgráfot ír le $\IS$ és $\IN$
+felett. Minden $\gamma$ adatgráfra egyértelmûen létezik egy ilyen
+függvény, melyet jelöljünk $\IC_\gamma$-val. Legyen $\pi$ egy redex
+minta a $\rho$-val jelölt átírási szabályok egyikében, és $\mu$ egy
+leképezés a $\pi$-ben található változó csúcs azonosítókról a $\gamma$
+adatgráfban található konstans csúcs azonosítókra úgy, hogy $\mu$
+megtartja a csúcsszerkezetet. Ez azt jelenti, hogy minden $x$
+csúcs azonosítóra $\pi$-bõl, melyre $\IC_\pi(x)=\text{S} x_1 x_2 \dots
+x_n$, igaz a következõ: $\IC_\gamma(\mu(x))=\text{S} \mu(x_1) \mu(x_2)
+\dots \mu(x_n)$.
+
+\begin{megj}
+  Egy adott $\gamma$ adatgráf kanonikus alakját megkapjuk, ha
+  kifejtjük a hozzá tartozó $\IC_\gamma$ függvény hozzárendelési
+  szabályait.
+\end{megj}
+
+\begin{pelda}
+  \Aref{tab:headfactcanonical} példában leírt gráfátíró rendszert
+  figyelembe véve, nézzük a következõ kifejezéshez tartozó adatgráfot:
+  \begin{lstlisting}
+    head [[36]]
+  \end{lstlisting}
+  \begin{tabular}{l@{:\hspace{0.5cm}}l}
+    @1 & \emph{Head} @2, \\
+    @2 & \emph{Cons} @3 @4, \\
+    @3 & \emph{Cons} @5 @4, \\
+    @4 & \emph{Nil}, \\
+    @5 & 36
+  \end{tabular}
+  \begin{figure}[htb]
+    \begin{center}
+      \caption{Listák listájának a fejeleme \label{fig:headlistlist}}
+      \includegraphics[height=0.3\textheight]{eps/headlistlist.eps}
+    \end{center}
+  \end{figure}
+
+  Ebben az esetben a $\mu$ leképezés a következõ módon írható: $\mu(r)
+  = \text{@1}$, $\mu(x) = \text{@2}$, $\mu(a) = \text{@3}$, $\mu(b) =
+  \text{@4}$.
+\end{pelda}
+
+\subsubsection{Gráfátírás}
+
+A gráfátírás megkezdése elõtt célszerû
+megállapodni egy fix kiinduló gráfban, ahonnan indítjuk az átírási
+lépéseket. Ez a kiinduló gráf tartalmaz egy gyökér csúcsot, mely az
+egész átírási folyamat alatt az adatgráf gyökere marad, illetve egy
+élet, amely a ténylegesen átírandó gráf gyökerére mutat. Ezt a csúcsot
+hívjuk startcsúcsnak. A startcsúcs megkövetelése nem nagy megszorítás,
+hiszen az átírási szabályok közé mindig felvehetünk egy speciális
+kezdõ szabályt, mely erre a startcsúcsra mutató élet átirányítja a
+ténylegesen átírandó gráfra. Az egyszerûség kedvéért azonban ezt a
+kezdõ szabályt mindig kihagyjuk a példa leírásokból, és a kívánt
+gráfot közvetlenül adjuk meg.
+
+Az átírási lépések célja, hogy az eredeti adatgráfból és a
+\emph{kontraktum}nak nevezett segédgráfból egy újat építsünk az élek
+átirányításának segítségével. Erre a kontraktum gráfra csak akkor van
+szükségünk, amikor az illeszkedõ szabály jobb oldalán megadtunk
+kontraktum mintát. Precízebben lépésekbe foglalva:
+
+\begin{enumerate}
+  \item \textbf{Illesztés.} Válasszunk ki egy redexet a hozzá illeszkedõ
+    szabállyal és a $\mu$ leképezéssel.
+  \item \textbf{Kontraktum.} Építsük fel a kontraktumot a következõképpen
+    (amennyiben az illeszkedõ szabály jobb oldalán található
+    kontraktum minta):
+    \begin{enumerate}
+      \item Generáljunk új egyedi konstans csúcs azonosítókat (a
+        $\gamma$-ban találhatóktól különbözõket) minden változó csúcs
+        azonosító definícióhoz a kontraktum mintából. Az így kialakult
+        változó $\rightarrow$ konstans leképezés legyen $\mu'$. Ekkor
+        $\mu'$ értékkészlete tartalmazza az átírás során újonnan
+        létrejött csúcsok azonosítóit.
+      \item Legyen $\mu'' = \mu \cup \mu'$. Alkalmazzuk $\mu''$-t a
+        kontraktum mintában található csúcs azonosítókra, így megkapva
+        a $\kappa$ kontraktum gráfot.
+    \end{enumerate}
+    Amennyiben a kontraktum minta nincs megadva, akkor $\kappa$ üres.
+  \item \textbf{Építés.} Legyen az új gráfunk $\gamma' = \gamma \cup \kappa$.
+  \item \textbf{Átirányítás.} A redirekció egy szabályban az $r \rightarrow n$
+    alakot ölti, ahol $r$ a redex minta gyökere. Ebben a lépésben
+    minden élet, ami $r$-be mutat, átirányítunk $n$-be. Ez a
+    szintaktikus reprezentációban azt jelenti, hogy a $\gamma'$ minden
+    csúcs definíciójában minden \textbf{argumentumként} megjelenõ @R
+    konstans csúcs azonosítót kicserélünk @N-re, ahol $\mu(r) =
+    \text{@R}$ és $\mu(n) = \text{@N}$. Az így kapott gráfot
+    jelöljük $\eta$-val.
+  \item \textbf{Szemétgyûjtés.} Az elõzõ lépésben megkapott $\eta$ nem
+    biztos, hogy összefüggõ. Ennek biztosítása a következõképpen
+    történik: minden csúcs, ami nem elérhetõ az eredeti $\gamma$ gráf
+    gyökerébõl, törlésre kerül a hozzá tartozó élekkel együtt. Így
+    tehát az eredmény gráfba csak azokat a csúcsokat értjük bele, amik
+    továbbra is elérhetõek maradtak az eredeti gyökérbõl a fenti
+    lépések végrehajtása után.
+\end{enumerate}
+
+\begin{megj}
+  Mivel a redex gyökere igen fontos szerepet tölt be az átírási
+  folyamatban, néha pongyolán egy csúcs átírásáról vagy redukálásáról
+  beszélünk, miközben annak a gráfnak a redukálására gondolunk,
+  amelynek gyökere a szóban forgó csúcs.
+\end{megj}
+
+A következõ példában részletesen bemutatunk egy nagyon egyszerû
+esetet:
+
+\begin{pelda}
+  Amint azt fent írtuk, a legelsõ lépésben a $\gamma$ alakja mindig
+  ez:
+
+  \begin{tabular}{l@{:\hspace{0.5cm}}l}
+    @Root & Graph @StartNode, \\
+    @StartNode & Start
+  \end{tabular}
+
+  A következõ Haskell kód lesz az átírási környezetünk (a fenti
+  $\gamma$ miatt definiálnunk kell egy ``start'' nevû csúcsot, ahonnan
+  indulni fog az átírás):
+
+  \begin{lstlisting}
+    -- data Nat = Zero | Succ Nat
+    add Zero z = z
+    add (Succ a) z = Succ (add a z)
+
+    start = add (Succ Zero) Zero
+    -- start == Succ Zero
+  \end{lstlisting}
+
+  Az ehhez tartozó $\rho$ átírási szabályok halmaza a következõ:
+
+  \begin{eqnarray}
+    x: \text{Add}~y~z, \nonumber\\
+    y: \text{Zero} & \hspace{0.5cm}\rightarrow\hspace{0.5cm} & x \leftarrow z \label{tab:rule1}\\
+    \nonumber\\
+    x: \text{Add}~y~z, \nonumber\\
+    y: \text{Succ}~a &\hspace{0.5cm}\rightarrow\hspace{0.5cm}& m: \text{Succ}~n, n: \text{Add}~a~z, \nonumber\\
+    & & x \leftarrow m \label{tab:rule2}\\
+    \nonumber\\
+    x: \text{Start} &\hspace{0.5cm}\rightarrow\hspace{0.5cm}& m: \text{Add}~n~o, n: \text{Succ}~o, o: \text{Zero}, \nonumber\\
+    & & x \leftarrow m \label{tab:rule3}
+  \end{eqnarray}
+
+  Az elsõ redukciós lépés közben a következõk történnek:
+  \begin{enumerate}
+    \item \textbf{Illesztés.} Az egyetlen szabály, amelyik illeszkedik
+      a start csúcsra \aref{tab:rule3}, az illesztéshez tartozó
+      leképezés pedig $\mu(x) = \text{@StartNode}$.
+    \item \textbf{Kontraktum.} Az új generált azonosítók és a hozzájuk
+      tartozó leképezés: $\mu'(m) = @M$, $\mu'(n) = @N'$, $\mu'(o) =
+      @O$. A $\mu''$ alkalmazása nincs hatással a kontraktum mintára,
+      mivel $x$ nem fordul benne elõ. A $\kappa$ tehát:
+
+      \begin{tabular}{l@{:\hspace{0.5cm}}l}
+        @M & Add @N @O, \\
+        @N & Succ @O, \\
+        @O & Zero
+      \end{tabular}
+    \item \textbf{Építés.} A $\gamma'$ ez lesz:
+
+      \begin{tabular}{l@{:\hspace{0.5cm}}l}
+        @Root & Graph @StartNode, \\
+        @StartNode & Start, \\
+        @M & Add @N @O, \\
+        @N & Succ @O, \\
+        @O & Zero
+      \end{tabular}
+    \item \textbf{Átirányítás.} Az átirányítás során minden
+      argumentumként elõforduló @StartNode lecserélõdik @M-re. Az
+      ennek eredményeképpen születõ $\eta$ (melyet \aref{fig:rwrredir}
+      ábra is mutat):
+
+      \begin{tabular}{l@{:\hspace{0.5cm}}l}
+        @Root & Graph @a, \\
+        @StartNode & Start, \\
+        @M & Add @N @O, \\
+        @N & Succ @O, \\
+        @O & Zero
+      \end{tabular}
+    \item \textbf{Szemétgyûjtés.} Mivel a @StartNode csúcs nem érhetõ
+      el a gyökérbõl, így kitöröljük $\eta$-ból.
+  \end{enumerate}
+
+  \begin{figure}[htb]
+    \begin{center}
+      \caption{Az átirányítás után létrejött $\eta$ \label{fig:rwrredir}}
+      \includegraphics[height=0.3\textheight]{eps/rwr_redir.eps}
+    \end{center}
+  \end{figure}
+
+  Ezzel végetért egyetlen átírási lépés. Az eredmény gráfban még
+  található redex, így a folyamat folytatódhat még két lépésen
+  keresztül, amikor is megkapjuk a végeredményt, melyben már nincs
+  redex:
+
+  \begin{tabular}{l@{:\hspace{0.5cm}}l}
+    @Root & Graph @P, \\
+    @O & Zero, \\
+    @P & Succ @C
+  \end{tabular}
+\end{pelda}
+
+Konfluencia, tulajdonságok TRSekbõl.
 Kapcsolódó definíciók, elnevezések, minták, \dots
-
-\section{Gráfátírás}
-
-Mintaillesztés, kötések létrejötte, algoritmus, lépések, példa
 Kapcsolódó definíciók, normál formák, redukciós sorozatok, stratégiák
 FGRS
 
