@@ -32,6 +32,9 @@
 
 % szimbólumok
 \newcommand{\rastar}    {\overset{*}{\rightarrow}}
+\newcommand{\n}         {\nonumber\\}
+\newcommand{\nl}        {\multicolumn{2}{c}{}\\}
+\newcommand{\vagy}       {$\hogy$}
 \renewcommand{\L}       {\Lambda}
 \newcommand{\LMD}       {(\L,M,D)}
 \newcommand{\LMDv}      {(\L',M',D')}
@@ -66,10 +69,12 @@
 \newcommand{\floor}     [1] {\left\lfloor#1\right\rfloor}
 \newcommand{\ceil}      [1] {\left\lceil#1\right\rceil}
 \newcommand{\kong}      [2] {#1 \equiv #2 \pmod M}
-\renewcommand{\tt}      [1] {\texttt{#1}}
+\renewcommand{\tt}      [1] {\textsf{#1}}
 \renewcommand{\bmod}    [1] {\text{mod}\mspace{4.5mu}#1}
-\renewcommand{\sf}      [1] {\textsf{#1}}
-
+\newcommand{\con}       [1] {\texttt{#1}}
+\newcommand{\lit}       [1] {\hspace{2mm}\textbf{'#1'}\hspace{2mm}}
+\newcommand{\predef}    [1] {\textit{#1}}
+\newcommand{\cn}        [1] {\textsc{@#1}}
 
 % algoritmusokhoz
 \newcommand{\Afunction} {\textbf{function} }
@@ -109,17 +114,42 @@
 
 }
 
-\newenvironment{canonGRS}
+\def\syn#1\endsyn{
+  \begin{align*}
+    #1
+  \end{align*}
+}
+
+\newenvironment{syntax}
 {%
-  \begin{tabular}{lcl}
+  \vspace{1cm}
+  \syn
 }
 {%
-  \end{tabular}
+  \endsyn
+  \vspace{1cm}
+}
+
+\newenvironment{canonGRS}
+{%
+  \begin{eqnarray*}
+}
+{%
+  \nonumber
+  \end{eqnarray*}
 }
 
 \newenvironment{canonDG}
 {%
   \begin{tabular}{l@{:\hspace{0.5cm}}l}
+}
+{%
+  \end{tabular}
+}
+
+\newenvironment{shorthand}
+{%
+  \begin{tabular}{l@{\hspace{0.5cm}$\rightarrow$\hspace{0.5cm}}l}
 }
 {%
   \end{tabular}

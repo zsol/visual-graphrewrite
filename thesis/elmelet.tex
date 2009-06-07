@@ -48,22 +48,20 @@ sztringek) álló halmazra.
 
 Egy adatgráf kanonikus alakját a következõ szintaxissal definiáljuk:
 
-\vspace{1cm}
-\begin{tabular}{l@{\hspace{0.5cm}=\hspace{0.5cm}}l}
-  \tt{Graph}   & \tt{NodeDef} \textbar \tt{NodeDef} \textbf{','} \tt{Graph} \\
-  \tt{NodeDef} & \tt{Nodeid} \textbf{':'} \tt{Node} \\
-  \tt{Node}    & \tt{Symbol} \{\tt{Arg}\} \textbar \tt{EmptyNode} \\
-  \tt{Symbol}  & \textit{Constant} \\
-  \tt{Arg}     & \tt{Nodeid} \\
-  \tt{Nodeid}  & \textit{NodeidVariable} \textbar \textit{NodeidConstant} \\
-  \tt{EmptyNode} & \textbf{'$\bot$'}
-\end{tabular}
-\vspace{1cm}
+\begin{align*}
+  \tt{Graph}   &= \tt{NodeDef} \hogy \tt{NodeDef} \lit{,} \tt{Graph} \\
+  \tt{NodeDef} &= \tt{Nodeid} \lit{:} \tt{Node} \\
+  \tt{Node}    &= \tt{Symbol} \{\tt{Arg}\} \hogy \tt{EmptyNode} \\
+  \tt{Symbol}  &= \predef{Constant} \\
+  \tt{Arg}     &= \tt{Nodeid} \\
+  \tt{Nodeid}  &= \predef{NodeidVariable} \hogy \predef{NodeidConstant} \\
+  \tt{EmptyNode} &= \lit{$\mathbf{\bot}$}
+\end{align*}
 
 Egy adatgráf tehát csúcs definíciók (\tt{NodeDef}) egy halmaza. A
 gráfban minden csúcshoz tartozik egy egyedi azonosító (\tt{Nodeid}),
-mely vagy ,,@''-cal kezdõdik (\tt{NodeidConstant} -- konstans),
-vagy kisbetûvel (\tt{NodeidVariable} -- változó). Egy csúcs
+mely vagy ,,@''-cal kezdõdik (\predef{NodeidConstant} -- konstans),
+vagy kisbetûvel (\predef{NodeidVariable} -- változó). Egy csúcs
 definíciójához (\tt{NodeDef}) kell egy ilyen csúcs azonosító, majd
 egy ,,:'' karakter után következik a csúcs leírása
 (\tt{Node}). Minden csúcshoz tartozik egy konstans szimbólum
@@ -73,20 +71,20 @@ definiálják az éleket a gráf ábrázolt formájában.
 
 \begin{pelda}
   \Aref{fig:lstdatag} ábrán található adatgráf kanonikus alakja (a
-  $(:)$ konstruktornak most a két paraméteres \tt{Cons}, a $[]$
-  konstruktornak pedig a \tt{Nil} felel meg):
+  $(:)$ konstruktornak most a két paraméteres \con{Cons}, a $[]$
+  konstruktornak pedig a \con{Nil} felel meg):
 
-  \begin{tabular}{l@{:\hspace{0.5cm}}l}
-      \sf{@1} & \tt{Cons} \sf{@2} \sf{@3}, \\
-      \sf{@2} & 71, \\
-      \sf{@3} & \tt{Cons} \sf{@4} \sf{@5}, \\
-      \sf{@4} & 72, \\
-      \sf{@5} & \tt{Nil}
-  \end{tabular}
+  \begin{canonDG}
+      \cn{1} & \con{Cons} \cn{2} \cn{3}, \\
+      \cn{2} & 71, \\
+      \cn{3} & \con{Cons} \cn{4} \cn{5}, \\
+      \cn{4} & 72, \\
+      \cn{5} & \con{Nil} \\
+  \end{canonDG}
 
-  Itt tehát nincsenek változó csúcs azonosítók, csak konstansok (\sf{@1}
-  \ldots \sf{@5}), valamint a konstans szimbólumok a következõk:
-  \tt{Cons}, 71, 72, \tt{Nil}.
+  Itt tehát nincsenek változó csúcs azonosítók, csak konstansok (\cn{1}
+  \ldots \cn{5}), valamint a konstans szimbólumok a következõk:
+  \con{Cons}, 71, 72, \con{Nil}.
 \end{pelda}
 
 \subsection{Szemantika}
@@ -136,10 +134,10 @@ tartalmazza mindazokat a csúcsokat, melyek elérhetõek $n$-bõl.
  \Aref{fig:inflist} ábrán található adatgráf a végtelen hosszú, csupa
  tizenegyeseket tartalmazó listához tartozik. Kanonikus alakja:
 
- \begin{tabular}{l@{:\hspace{0.5cm}}l}
-   @1 & \emph{Cons} @2 @1, \\
-   @2 & 11
- \end{tabular}
+ \begin{canonDG}
+   \cn{1} & \con{Cons} \cn{2} \cn{1}, \\
+   \cn{2} & 11
+ \end{canonDG}
 
  Ez a gráf látható módon
  véges (mint minden adatgráf), zárt, összefüggõ, és tartalmaz egy kört
@@ -184,18 +182,18 @@ formában kezelni azokat, úgyhogy megadunk egy rövidített formát is.
 \subsubsection{Kanonikus alak}
 
 A gráfátíró rendszerek szintaxisa tehát a következõképpen írható le:
-\vspace{0.5cm}
 
-\begin{tabular}{l@{\hspace{0.5cm}=\hspace{0.5cm}}l}
+\begin{align*}
   \label{tab:canonicalgrs}
-  \textit{CanonicalGRS} & \textit{Rule} | \textit{Rule} \textit{CanonicalGRS}\\
-  \textit{Rule} & \textit{RedexPattern} \textbf{'$\rightarrow$'} \{\textit{Contractum}\} \textit{Redirection} \\
-  \textit{Contractum} & \textit{ContractumPattern} | \textit{ContractumPattern} \textbf{','} \textit{Contractum} \\
-  \textit{RedexPattern} & Graph \\
-  \textit{ContractumPattern} & Graph \\
-  \textit{Redirection} & Nodeid \textbf{'$\leftarrow$'} Nodeid
-\end{tabular}
-Ahol a \emph{Nodeid} és a \emph{Graph} definíciója az adatgráfoknál
+  \tt{CanonicalGRS} &= \tt{Rule} \hogy \tt{Rule} \tt{CanonicalGRS}\\
+  \tt{Rule} &= \tt{RedexPattern} \lit{$\rightarrow$} \{\tt{Contractum}\} \tt{Redirection} \\
+  \tt{Contractum} &= \tt{ContractumPattern} \\
+  &\hogy \tt{ContractumPattern} \lit{,} \tt{Contractum} \\
+  \tt{RedexPattern} &= \predef{Graph} \\
+  \tt{ContractumPattern} &= \predef{Graph} \\
+  \tt{Redirection} &= \predef{Nodeid} \lit{$\mathbf{\leftarrow}$} \predef{Nodeid}
+\end{align*}
+Ahol a \predef{Nodeid} és a \predef{Graph} definíciója az adatgráfoknál
 megadottal egyezik meg. A fenti definícióból is látszik, hogy a
 szabályok az $r : \alpha_r \rightarrow \beta_r, \varphi_r$ alakot
 követik, ahol $\beta_r$ opcionális. Ebben a jelölésben az $\alpha_r$-t
@@ -231,23 +229,21 @@ csak a minta fejében szerepelhetnek, hanem bárhol máshol a mintában.
   \end{lstlisting}
   Ebbõl a pár sorból felírhatunk egy olyan gráfátíró rendszert,
   melynek kanonikus alakja:
-
-  \begin{tabular}{lcl}
-    \label{tab:headfactcanonical}
-    $r$: Head $x$, \\
-    $x$: Cons $a$ $b$ & $\rightarrow$ & $r \leftarrow a$\\
-    \\
-    $r$: Fact $x$, \\
-    $x$: 0 & $\rightarrow$ & $r'$: 1, $r \leftarrow r'$\\
-    \\
-    $r$: Fact $n$ & $\rightarrow$ & $r'$: $*$ $n$ $u$, $u$: Fact $v$, \\
-    & & $v$: $-$ $n$ $w$, $w$: 1, \\
-    & & $r \rightarrow r'$ \\
-    \\
-    $r$: Start & $\rightarrow$ & $r'$: Fact $a$, $a$: Head $b$, \\
-    & & $b$: Cons $c$ $d$, $c$: 1000, $d$: Nil \\
-    & & $r \rightarrow r'$
-  \end{tabular}
+  \begin{canonGRS}
+    r:~\con{Head}~x, \n
+    x:~\con{Cons}~a~b & \rightarrow & r \leftarrow a \n
+    \n
+    r:~\con{Fact}~x, \n
+    x:~0 & \rightarrow & r':~1, ~ r \leftarrow r' \n
+    \n
+    r:~\con{Fact}~n & \rightarrow & r':~*~n~u, ~ u:~\con{Fact}~v, \n
+    & & v:~-~n~w, w:~1, \n
+    & & r \leftarrow r' \n
+    \n
+    r:~\con{Start} & \rightarrow & r':~\con{Fact}~a, ~ a:~\con{Head}~b, \n
+    & & b:~\con{Cons}~c~d, ~ c:~1000, ~ d:~\con{Nil} \n
+    & & r \leftarrow r' \n
+  \end{canonGRS}
 \end{pelda}
 
 \subsubsection{Rövidített alak}
@@ -259,33 +255,33 @@ definiáljuk ezeknek egy úgynevezett rövidített alakját. Ebbõl a
 rövidített alakból mindig automatikusan meghatározható egy kanonikus
 alak mind a gráfok, mind az átíró rendszerek esetében.
 
-\begin{tabular}{lcl}
-  \textit{GraphRewriteSystem} &=& \textit{Rule} | \textit{Rule} \textit{GraphRewriteSystem} \\
-  \textit{Rule} &=& \textit{RedexPattern} \textbf{'$\rightarrow$'} \textit{ContractumPattern} \{\textbf{','} \textit{Redirection}\} \\
-  & & | \textit{RedexPattern} \textbf{'$\rightarrow$'} \textit{Redirection} \\
-  \textit{RedexPattern} &=& \textit{Graph} \\
-  \textit{ContractumPattern} &=& \textit{Graph} \\
-  \textit{Redirection} &=& \textit{Nodeid} \textbf{'$\leftarrow$'} \textit{Nodeid} | \textit{Nodeid} \\
-  \textit{Graph} &=& \{\textit{Nodeid} \textbf{':'}\} \textit{Node} | \{\textit{Nodeid} \textbf{':'}\} \textit{Node} \textbf{','} \textit{Graph} \\
-  \textit{Nodeid} &=& NodeidVariable | NodeidConstant \\
-  \textit{Node} &=& \textit{Symbol} \{\textit{Arg}\} | \textit{EmptyNode} \\
-  \textit{Symbol} &=& Constant \\
-  \textit{Arg} &=& \textit{Nodeid} | \{\textit{Nodeid} \textbf{','}\} \textit{Symbol} | \{\textit{Nodeid} \textbf{','}\} \textbf{'('} \textit{Node} \textbf{')'} \\
-  \textit{NodeDef} &=& \textit{Nodeid} \textbf{':'} \textit{Node} \\
-  \textit{EmptyNode} &=& \textbf{$\bot$}
-\end{tabular}
+\begin{align*}
+  \tt{GraphRewriteSystem} &= \tt{Rule} \hogy \tt{Rule} \tt{GraphRewriteSystem} \\
+  \tt{Rule} &= \tt{RedexPattern} \lit{$\mathbf{\rightarrow}$} \tt{ContractumPattern} \{\lit{,} \tt{Redirection}\} \\
+  &\hogy \tt{RedexPattern} \lit{$\mathbf{\rightarrow}$} \tt{Redirection} \\
+  \tt{RedexPattern} &= \tt{Graph} \\
+  \tt{ContractumPattern} &= \tt{Graph} \\
+  \tt{Redirection} &= \tt{Nodeid} \lit{$\mathbf{\leftarrow}$} \tt{Nodeid} \hogy \tt{Nodeid} \\
+  \tt{Graph} &= \{\tt{Nodeid} \lit{:}\} \tt{Node} \hogy \{\tt{Nodeid} \lit{:}\} \tt{Node} \lit{,} \tt{Graph} \\
+  \tt{Nodeid} &= NodeidVariable \hogy NodeidConstant \\
+  \tt{Node} &= \tt{Symbol} \{\tt{Arg}\} \hogy \tt{EmptyNode} \\
+  \tt{Symbol} &= Constant \\
+  \tt{Arg} &= \tt{Nodeid} \hogy \{\tt{Nodeid} \lit{,}\} \tt{Symbol} \hogy \{\tt{Nodeid} \lit{,}\} \lit{(} \tt{Node} \lit{)} \\
+  \tt{NodeDef} &= \tt{Nodeid} \lit{:} \tt{Node} \\
+  \tt{EmptyNode} &= \lit{$\mathbf{\bot}$}
+\end{align*}
 
 \begin{pelda}
   Az elõzõ példa gráfátíró rendszer most rövidített alakban:
 
-  \begin{tabular}{lcl}
-    Head (\text{Cons} $a$ $b$) &\hspace{0.5cm}$\rightarrow$\hspace{0.5cm}& $a$ \\
-    \\
-    Fact 0 &\hspace{0.5cm}$\rightarrow$\hspace{0.5cm}& 1 \\
-    Fact $n$ &\hspace{0.5cm}$\rightarrow$\hspace{0.5cm}& $*$ $n$ (Fact ($-$ $n$ 1)) \\
-    \\
-    Start &\hspace{0.5cm}$\rightarrow$\hspace{0.5cm}& Fact (Head (Cons 1000 Nil))
-  \end{tabular}
+  \begin{shorthand}
+    \con{Head} (\con{Cons} $a$ $b$) & $a$ \\
+    \nl
+    \con{Fact} 0 & 1 \\
+    \con{Fact} $n$ & $*$ $n$ (\con{Fact} ($-$ $n$ 1)) \\
+    \nl
+    \con{Start} & \con{Fact} (\con{Head} (\con{Cons} 1000 \con{Nil}))
+  \end{shorthand}
 
 \end{pelda}
 
@@ -367,13 +363,13 @@ x_n$, igaz a következõ: $\IC_\gamma(\mu(x))=\text{S} \mu(x_1) \mu(x_2)
   \begin{lstlisting}
     head [[36]]
   \end{lstlisting}
-  \begin{tabular}{l@{:\hspace{0.5cm}}l}
-    @1 & \emph{Head} @2, \\
-    @2 & \emph{Cons} @3 @4, \\
-    @3 & \emph{Cons} @5 @4, \\
-    @4 & \emph{Nil}, \\
-    @5 & 36
-  \end{tabular}
+  \begin{canonDG}
+    \cn{1} & \con{Head} \cn{2}, \\
+    \cn{2} & \con{Cons} \cn{3} \cn{4}, \\
+    \cn{3} & \con{Cons} \cn{5} \cn{4}, \\
+    \cn{4} & \con{Nil}, \\
+    \cn{5} & 36
+  \end{canonDG}
   \begin{figure}[htb]
     \begin{center}
       \caption{Listák listájának a fejeleme \label{fig:headlistlist}}
@@ -382,8 +378,8 @@ x_n$, igaz a következõ: $\IC_\gamma(\mu(x))=\text{S} \mu(x_1) \mu(x_2)
   \end{figure}
 
   Ebben az esetben a $\mu$ leképezés a következõ módon írható: $\mu(r)
-  = \text{@1}$, $\mu(x) = \text{@2}$, $\mu(a) = \text{@3}$, $\mu(b) =
-  \text{@4}$.
+  = \con{@1}$, $\mu(x) = \con{@2}$, $\mu(a) = \con{@3}$, $\mu(b) =
+  \con{@4}$.
 \end{pelda}
 
 \subsubsection{Gráfátírás}
@@ -456,10 +452,10 @@ esetet:
   Amint azt fent írtuk, a legelsõ lépésben a $\gamma$ alakja mindig
   ez:
 
-  \begin{tabular}{l@{:\hspace{0.5cm}}l}
-    @Root & Graph @StartNode, \\
-    @StartNode & Start
-  \end{tabular}
+  \begin{canonDG}
+    \cn{Root} & \con{Graph} \cn{StartNode}, \\
+    \cn{StartNode} & \con{Start}
+  \end{canonDG}
 
   A következõ Haskell kód lesz az átírási környezetünk (a fenti
   $\gamma$ miatt definiálnunk kell egy ``start'' nevû csúcsot, ahonnan
@@ -476,7 +472,7 @@ esetet:
 
   Az ehhez tartozó $\rho$ átírási szabályok halmaza a következõ:
 
-  \begin{eqnarray}
+  \begin{eqnarray} %Ez sajnos spec eset a szamozas miatt!
     x: \text{Add}~y~z, \nonumber\\
     y: \text{Zero} & \hspace{0.5cm}\rightarrow\hspace{0.5cm} & x \leftarrow z \label{tab:rule1}\\
     \nonumber\\
@@ -498,33 +494,33 @@ esetet:
       @O$. A $\mu''$ alkalmazása nincs hatással a kontraktum mintára,
       mivel $x$ nem fordul benne elõ. A $\kappa$ tehát:
 
-      \begin{tabular}{l@{:\hspace{0.5cm}}l}
-        @M & Add @N @O, \\
-        @N & Succ @O, \\
-        @O & Zero
-      \end{tabular}
+      \begin{canonDG}
+        \cn{M} & \con{Add} \cn{N} \cn{O}, \\
+        \cn{N} & \con{Succ} \cn{O}, \\
+        \cn{O} & \con{Zero}
+      \end{canonDG}
     \item \textbf{Építés.} A $\gamma'$ a következõképpen írható:
 
-      \begin{tabular}{l@{:\hspace{0.5cm}}l}
-        @Root & Graph @StartNode, \\
-        @StartNode & Start, \\
-        @M & Add @N @O, \\
-        @N & Succ @O, \\
-        @O & Zero
-      \end{tabular}
+      \begin{canonDG}
+        \cn{Root} & \con{Graph} \cn{StartNode}, \\
+        \cn{StartNode} & \con{Start}, \\
+        \cn{M} & \con{Add} \cn{N} \cn{O}, \\
+        \cn{N} & \con{Succ} \cn{O}, \\
+        \cn{O} & \con{Zero}
+      \end{canonDG}
     \item \textbf{Átirányítás.} Az átirányítás során minden
       argumentumként elõforduló @StartNode lecserélõdik @M-re. Az
       ennek eredményeképpen születõ $\eta$ (melyet \aref{fig:rwrredir}
       ábra is mutat):
 
-      \begin{tabular}{l@{:\hspace{0.5cm}}l}
-        @Root & Graph @a, \\
-        @StartNode & Start, \\
-        @M & Add @N @O, \\
-        @N & Succ @O, \\
-        @O & Zero
-      \end{tabular}
-    \item \textbf{Szemétgyûjtés.} Mivel a @StartNode csúcs nem érhetõ
+      \begin{canonDG}
+        \cn{Root} & \con{Graph} \cn{a}, \\
+        \cn{StartNode} & \con{Start}, \\
+        \cn{M} & \con{Add} \cn{N} \cn{O}, \\
+        \cn{N} & \con{Succ} \cn{O}, \\
+        \cn{O} & \con{Zero}
+      \end{canonDG}
+    \item \textbf{Szemétgyûjtés.} Mivel a \cn{StartNode} csúcs nem érhetõ
       el a gyökérbõl, így kitöröljük $\eta$-ból.
   \end{enumerate}
 
@@ -541,9 +537,9 @@ esetet:
   redex:
 
   \begin{tabular}{l@{:\hspace{0.5cm}}l}
-    @Root & Graph @P, \\
-    @O & Zero, \\
-    @P & Succ @C
+    \cn{Root} & \con{Graph} \cn{P}, \\
+    \cn{O} & \con{Zero}, \\
+    \cn{P} & \con{Succ} \cn{C}
   \end{tabular}
 \end{pelda}
 
@@ -623,12 +619,11 @@ esetekben, amikor a gyökér egy konstruktor, mint a következõ példában:
   után azonban látható, hogy létezik normál formája, ez pedig
   Cons~3~120.
 
-  \begin{tabular}{lcl}
-    Fact 0 &\hspace{0.5cm}$\rightarrow$\hspace{0.5cm}& 1 \\
-    Fact $n$ &\hspace{0.5cm}$\rightarrow$\hspace{0.5cm}&
-    $*~n~(\text{Fact}~(-~n~1))$ \\
-    Start &\hspace{0.5cm}$\rightarrow$\hspace{0.5cm}& Cons 3 (Fact 5)
-  \end{tabular}
+  \begin{shorthand}
+    \con{Fact} 0 & 1 \\
+    \con{Fact} $n$ & $*~n~(\con{Fact}~(-~n~1))$ \\
+    \con{Start} & \con{Cons} 3 (\con{Fact} 5)
+  \end{shorthand}
 \end{pelda}
 
 Mivel a mi szempontunkból nem teljesen nélkülözhetetlen eszközök, így
@@ -642,11 +637,11 @@ a gyökér normál formával ellentétben eldönthetõ tulajdonság. A
 probléma ezekkel a fogalmakkal az (ahogy \cite{cleanbook} is említi),
 hogy a következõhöz hasonló ciklikus esetekben nem definiáltak:
 
-\begin{tabular}{lcl}
-  A x &\hspace{0.5cm}$\rightarrow$\hspace{0.5cm}& y \\
-  \\
-  Start &\hspace{0.5cm}$\rightarrow$\hspace{0.5cm}& A Start
-\end{tabular}
+\begin{shorthand}
+  \con{A} x & y \\
+  \nl
+  \con{Start} & A \con{Start}
+\end{shorthand}
 
 \subsubsection{Konfluencia}
 
@@ -684,10 +679,10 @@ ugyanarra a részlegesen átfedõ szabályra.
 \begin{pelda}
   A következõ példa a részleges átfedést mutatja be:
 
-  \begin{tabular}{lcl}
-    f (g a 1) &\hspace{0.5cm}$\rightarrow$\hspace{0.5cm}& 1 \\
-    g a b &\hspace{0.5cm}$\rightarrow$\hspace{0.5cm}& a
-  \end{tabular}
+  \begin{shorthand}
+    \con{f} (\con{g} $a$ 1) & 1 \\
+    \con{g} $a$ $b$ & $a$
+  \end{shorthand}
 
   A fenti átíró rendszerben a g 0 1 részgráf nyilván egy redex, és az
   elsõ szabály bal oldala egy nem változó részgráfjának példánya, így
@@ -697,20 +692,20 @@ ugyanarra a részlegesen átfedõ szabályra.
   Egy példa arra, hogyan illeszkedhet többféleképpen is egy részgráf a
   megfelelõ részlegesen átfedõ szabályra:
 
-  \begin{tabular}{lcl}
-    r: F x, \\
-    x: F a &\hspace{0.5cm}$\rightarrow$\hspace{0.5cm}& r $\leftarrow$ a \\
+  \begin{canonGRS}
+    r:~\con{F}~x, \\
+    x:~\con{F}~a &\rightarrow~~r \leftarrow a \\
     \\
-    @1: F @2, \\
-    @2: F @1
-  \end{tabular}
+    \cn{1}&:~\con{F}~\cn{2}, \\
+    \cn{2}&:~\con{F}~\cn{1}
+  \end{canonGRS}
 
   Figyeljük meg, hogy az egyetlen szabály részlegesen átfedi önmagát
   (a részleges átfedésnél nem kötöttük ki azt, hogy $\alpha_1 \not =
   \alpha_2$).
   Az alsó adatgráf kétféleképpen illeszkedik a felsõ szabályra:
-  egyrészt $\mu(r) = @1$, $\mu(x) = @2$, $\mu(a) = @1$, másrészt
-  $\mu(r) = @2$, $\mu(x) = @1$, $\mu(a) = @2$.
+  egyrészt $\mu(r) = \cn{1}$, $\mu(x) = \cn{2}$, $\mu(a) = \cn{1}$, másrészt
+  $\mu(r) = \cn{2}$, $\mu(x) = \cn{1}$, $\mu(a) = \cn{2}$.
 \end{pelda}
 
 Ez a többértelmûség tehát egy potenciális forrása a konfluencia
@@ -746,11 +741,11 @@ nem veszélyezteti a konfluenciát.
 \begin{pelda}
   A következõ példa egy összehasonlító gráfátíró rendszert mutat be:
 
-  \begin{tabular}{lcl}
-    isEqual x x &\hspace{0.5cm}$\rightarrow$\hspace{0.5cm}& True\\
-    \\
-    Start &\hspace{0.5cm}$\rightarrow$\hspace{0.5cm}& isEqual 2 (1+1)
-  \end{tabular}
+  \begin{shorthand}
+    \con{isEqual} $x$ $x$ & \con{True}\\
+    \nl
+    \con{Start} & \con{isEqual} $2$ ($1+1$)
+  \end{shorthand}
 
   Látható, hogy a start szimbólumra nem illeszkedik az egyetlen
   szabály, mivel a két argumentum szintaktikailag nem azonos.
