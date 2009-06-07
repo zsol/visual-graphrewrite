@@ -31,6 +31,7 @@
 
 
 % szimbólumok
+\newcommand{\rastar}    {\overset{*}{\rightarrow}}
 \renewcommand{\L}       {\Lambda}
 \newcommand{\LMD}       {(\L,M,D)}
 \newcommand{\LMDv}      {(\L',M',D')}
@@ -67,6 +68,7 @@
 \newcommand{\kong}      [2] {#1 \equiv #2 \pmod M}
 \renewcommand{\tt}      [1] {\texttt{#1}}
 \renewcommand{\bmod}    [1] {\text{mod}\mspace{4.5mu}#1}
+\renewcommand{\sf}      [1] {\textsf{#1}}
 
 
 % algoritmusokhoz
@@ -107,6 +109,21 @@
 
 }
 
+\newenvironment{canonGRS}
+{%
+  \begin{tabular}{lcl}
+}
+{%
+  \end{tabular}
+}
+
+\newenvironment{canonDG}
+{%
+  \begin{tabular}{l@{:\hspace{0.5cm}}l}
+}
+{%
+  \end{tabular}
+}
 
 % ezen belül a bekezdések nem kezdõdnek beljebb, helykihagyás van
 \newlength{\parindentSave}

@@ -1,3 +1,7 @@
+%TODÕ
+%egysegesiteni a tabularokat, listingeket, eqnarrayokat, stb.
+%fontok.
+
 \chapter{Elméleti alapok}
 
 Ebben a fejezetben a gráfátíró rendszerek elméleti alapjaival
@@ -46,44 +50,43 @@ Egy adatgráf kanonikus alakját a következõ szintaxissal definiáljuk:
 
 \vspace{1cm}
 \begin{tabular}{l@{\hspace{0.5cm}=\hspace{0.5cm}}l}
-  \textit{Graph}   & \textit{NodeDef} | \textit{NodeDef} \textbf{','} \textit{Graph} \\
-  \textit{NodeDef} & \textit{Nodeid} \textbf{':'} \textit{Node} \\
-  \textit{Node}    & \textit{Symbol} \{\textit{Arg}\}  |
-  \textit{EmptyNode} \\
-  \textit{Symbol}  & Constant \\
-  \textit{Arg}     & \textit{Nodeid} \\
-  \textit{Nodeid}  & NodeidVariable | NodeidConstant \\
-  \textit{EmptyNode} & \textbf{'$\bot$'}
+  \tt{Graph}   & \tt{NodeDef} \textbar \tt{NodeDef} \textbf{','} \tt{Graph} \\
+  \tt{NodeDef} & \tt{Nodeid} \textbf{':'} \tt{Node} \\
+  \tt{Node}    & \tt{Symbol} \{\tt{Arg}\} \textbar \tt{EmptyNode} \\
+  \tt{Symbol}  & \textit{Constant} \\
+  \tt{Arg}     & \tt{Nodeid} \\
+  \tt{Nodeid}  & \textit{NodeidVariable} \textbar \textit{NodeidConstant} \\
+  \tt{EmptyNode} & \textbf{'$\bot$'}
 \end{tabular}
 \vspace{1cm}
 
-Egy adatgráf tehát csúcs definíciók (\emph{NodeDef}) egy halmaza. A
-gráfban minden csúcshoz tartozik egy egyedi azonosító (\emph{Nodeid}),
-mely vagy ,,@''-cal kezdõdik (\emph{NodeidConstant} --- konstans),
-vagy kisbetûvel (\emph{NodeidVariable} --- változó). Egy csúcs
-definíciójához (\emph{NodeDef}) kell egy ilyen csúcs azonosító, majd
+Egy adatgráf tehát csúcs definíciók (\tt{NodeDef}) egy halmaza. A
+gráfban minden csúcshoz tartozik egy egyedi azonosító (\tt{Nodeid}),
+mely vagy ,,@''-cal kezdõdik (\tt{NodeidConstant} -- konstans),
+vagy kisbetûvel (\tt{NodeidVariable} -- változó). Egy csúcs
+definíciójához (\tt{NodeDef}) kell egy ilyen csúcs azonosító, majd
 egy ,,:'' karakter után következik a csúcs leírása
-(\emph{Node}). Minden csúcshoz tartozik egy konstans szimbólum
-(\emph{Symbol}), melynek esetleg argumentumai (\emph{Arg})
+(\tt{Node}). Minden csúcshoz tartozik egy konstans szimbólum
+(\tt{Symbol}), melynek esetleg argumentumai (\tt{Arg})
 lehetnek. Ezek az argumentumok tulajdonképpen csúcs azonosítók, melyek
 definiálják az éleket a gráf ábrázolt formájában.
 
 \begin{pelda}
   \Aref{fig:lstdatag} ábrán található adatgráf kanonikus alakja (a
-  $(:)$ konstruktornak most a két paraméteres \emph{Cons}, a $[]$
-  konstruktornak pedig a \emph{Nil} felel meg):
+  $(:)$ konstruktornak most a két paraméteres \tt{Cons}, a $[]$
+  konstruktornak pedig a \tt{Nil} felel meg):
 
   \begin{tabular}{l@{:\hspace{0.5cm}}l}
-      @1 & \emph{Cons} @2 @3, \\
-      @2 & 71, \\
-      @3 & \emph{Cons} @4 @5, \\
-      @4 & 72, \\
-      @5 & \emph{Nil}
+      \sf{@1} & \tt{Cons} \sf{@2} \sf{@3}, \\
+      \sf{@2} & 71, \\
+      \sf{@3} & \tt{Cons} \sf{@4} \sf{@5}, \\
+      \sf{@4} & 72, \\
+      \sf{@5} & \tt{Nil}
   \end{tabular}
 
-  Itt tehát nincsenek változó csúcs azonosítók, csak konstansok (@1
-  \dots @5), valamint a konstans szimbólumok a következõk:
-  \emph{Cons}, 71, 72, \emph{Nil}.
+  Itt tehát nincsenek változó csúcs azonosítók, csak konstansok (\sf{@1}
+  \ldots \sf{@5}), valamint a konstans szimbólumok a következõk:
+  \tt{Cons}, 71, 72, \tt{Nil}.
 \end{pelda}
 
 \subsection{Szemantika}
@@ -500,7 +503,7 @@ esetet:
         @N & Succ @O, \\
         @O & Zero
       \end{tabular}
-    \item \textbf{Építés.} A $\gamma'$ ez lesz:
+    \item \textbf{Építés.} A $\gamma'$ a következõképpen írható:
 
       \begin{tabular}{l@{:\hspace{0.5cm}}l}
         @Root & Graph @StartNode, \\
@@ -542,6 +545,215 @@ esetet:
     @O & Zero, \\
     @P & Succ @C
   \end{tabular}
+\end{pelda}
+
+\subsubsection{$\delta$-szabályok}
+
+Ahogy a $\lambda$-kalkulusban és a term átíró rendszereknél, gráfoknál
+is létezhetnek kívülrõl definiált függvények és konstansok. Az ilyen
+külsõleg definiált szabályokat hívjuk $\delta$-szabályoknak vagy
+\emph{$\delta$-függvény}eknek. Ilyen $\delta$-függvényeket implicit
+módon eddig is használtunk, például az összeadás és a kivonás
+alkalmazásánál. Ha egy ilyen külsõleg definiált függvényt alkalmazzuk
+annyi argumentumra, amennyit ``vár'', az ennek megfelelõ
+részkifejezést \emph{$\delta$-redex}nek hívjuk. Amikor az alkalmazást
+elvégezzük, akkor egy \emph{$\delta$-redukciós lépés}t hajtunk
+végre. Egy $\delta$-függvény argumentumainak megfelelõ típusúaknak és
+megfelelõ mennyiségûeknek kell lenniük, különben a részkifejezés még
+nem $\delta$-redex. Ebbõl következik, hogy ilyen esetben a függvény
+argumentumait kell elõször redukálni a függvény alkalmazása elõtt.
+
+\begin{megj}
+  A $\delta$-függvényeket bele lehetne építeni az átírási szabályokba,
+  általában sokkal kényelmesebb feltételezni a meglétüket, nem is
+  beszélve az olvashatóságról. Természetesen csak akkor célszerû ilyet
+  csinálni, amikor jól ismert függvényekrõl van szó, melyeknek
+  triviális az implementációja.
+\end{megj}
+
+\subsubsection{Normál formák}
+
+Egyetlen redukciót általában redukciós lépésnek (vagy átírási
+lépésnek) hívunk. Ha $\gamma_1$ valamilyen redukciós lépéssel
+$\gamma_2$-vé alakítható, akkor ezt így írjuk: $\gamma_1 \rightarrow
+\gamma_2$.  Egy \emph{redukciós sorozat} egy nulla vagy több
+elembõl álló redukciós lépésekbõl álló sorozatot nevezünk, melyben
+igaz az, hogy ha az $i$. lépés a $\gamma_{i-1} \rightarrow \gamma_i$
+redukciót valósítja meg, akkor az $i+1$. lépés a $\gamma_i \rightarrow
+\gamma_{i+1}$-et. Ha létezik olyan redukciós sorozat, mely
+$\gamma_1$-bõl $\gamma_2$-t állítja elõ, akkor $\gamma_2$-t $\gamma_1$
+\emph{redukáltjá}nak nevezzük, és ezt a tényt így jelöljük: $\gamma_1
+\rastar \gamma_2$. A $\rastar$ tehát a $\rightarrow$ tranzitív,
+reflexív lezártja.
+
+\begin{megj}
+  A $\rastar$ fenti definíciója miatt elképzelhetõ az, hogy $\gamma
+  \rastar \eta$, de $\gamma \not\rightarrow \eta$. Ez csak abban az
+  egy esetben fordulhat elõ, amikor $\gamma = \eta$, így
+  kiegészíthetjük $\rightarrow$ definícióját, hogy ebben az esetben is
+  fenn álljon a reláció.
+\end{megj}
+
+Egy adott $\rho$ gráfátíró rendszer mellett azt mondjuk, hogy $\gamma$
+\emph{normál formájú}, ha nem található $\rho$-ban olyan szabály,
+mely illeszkedik $\gamma$-ra, vagy valamelyik részgráfjára. Ez tehát
+azt jelenti, hogy $\gamma$-nak $\rho$-ra nézve nincs
+redexje. Figyeljük meg, hogy ahogy a redex tulajdonság is, úgy a
+redexmentesség, tehát a normál forma is függ az adott $\rho$-tól. Azt
+mondjuk, hogy $\gamma$-nak \emph{létezik normál formája}, ha van olyan
+redukciós sorozat, mely $\gamma$-ból normál formát gyárt; más szóval,
+ha $\gamma$-nak létezik normál formájú redukáltja.
+
+Az adott $\rho$ gráfátíró rendszer mellett azt mondjuk, hogy $\gamma$
+\emph{gyökér normál formájú}, ha $\gamma$ maga nem redex, és sosem
+lesz az. Ez precízebben megfogalmazva azt jelenti, hogy bármilyen
+redukciós sorozatát is véve $\gamma$-nak, a végeredmény sosem lesz
+redex, azaz $\forall \gamma \rastar \eta: \eta~\text{nem
+  redex}$. Ha egy gráf normál formájú, akkor gyökér normál formájú is,
+de fordítva nem feltétlenül igaz; lehetnek olyan részgráfjai, melyek
+redexek. Az a tény, hogy egy gráf sosem lesz redex, az általános
+esetben eldönthetetlen, tehát a gyökér normál forma tulajdonság is
+az. Sok esetben viszont triviálisan látszik, például azokban az
+esetekben, amikor a gyökér egy konstruktor, mint a következõ példában:
+
+\begin{pelda}
+  Ebben a példában a Start gyökerû adatgráf gyökér normál formájú, mivel
+  konstruktorral kezdõdik, azonban nincs normál formában, hiszen a
+  Cons második paraméterétõl kezdõdõ részgráf egy redex. Rövid elemzés
+  után azonban látható, hogy létezik normál formája, ez pedig
+  Cons~3~120.
+
+  \begin{tabular}{lcl}
+    Fact 0 &\hspace{0.5cm}$\rightarrow$\hspace{0.5cm}& 1 \\
+    Fact $n$ &\hspace{0.5cm}$\rightarrow$\hspace{0.5cm}&
+    $*~n~(\text{Fact}~(-~n~1))$ \\
+    Start &\hspace{0.5cm}$\rightarrow$\hspace{0.5cm}& Cons 3 (Fact 5)
+  \end{tabular}
+\end{pelda}
+
+Mivel a mi szempontunkból nem teljesen nélkülözhetetlen eszközök, így
+mindössze megemlítjük a következõ két
+fogalmat. \told\Acite{cleanbook}+ban{} található a részletesebb
+tárgyalásuk. Egy gráf \emph{részlegesen illeszkedik} egy szabályra, ha
+a baloldalukat nézve elképzelhetõ, hogy pár redukciós lépés után
+illeszkedni fognak. Egy gráf \emph{erõs normál formájú}, ha
+részlegesen sem illeszkedik egyik szabályra sem. Az erõs normál forma
+a gyökér normál formával ellentétben eldönthetõ tulajdonság. A
+probléma ezekkel a fogalmakkal az (ahogy \cite{cleanbook} is említi),
+hogy a következõhöz hasonló ciklikus esetekben nem definiáltak:
+
+\begin{tabular}{lcl}
+  A x &\hspace{0.5cm}$\rightarrow$\hspace{0.5cm}& y \\
+  \\
+  Start &\hspace{0.5cm}$\rightarrow$\hspace{0.5cm}& A Start
+\end{tabular}
+
+\subsubsection{Konfluencia}
+
+Egy $\rho$ gráfátíró rendszer \emph{konfluens} (vagy
+\emph{Church-Rosser tulajdonságú}) akkor és csak akkor, ha bármely két
+(divergens) $\gamma \rastar \gamma_1$, $\gamma \rastar \gamma_2$
+redukciós sorozatra létezik két (konvergens) $\gamma_1 \rastar \eta$,
+$\gamma_2 \rastar \eta$ redukciós sorozat. Ha $\rho$ konfluens, akkor
+minden $\gamma$ adatgráfnak egyértelmûen létezik normál formája
+$\rho$-ra nézve.
+
+Egy alapvetõen determinisztikus programozási nyelv szempontjából
+kritikus az, hogy minden helyes kifejezés kiértékelése egyértelmû
+eredményt adjon, így az
+egyértelmû normál forma, és ennek kapcsán a konfluencia kívánatos
+tulajdonságok. Term átíró rendszereknél két fontos gátja van a
+konfluenciának; mivel ezek általánosításai a gráfátíró rendszerek, így
+ezeket vizsgáljuk meg.
+
+\subsubsection{Többértelmûség}
+
+A gráfátíró rendszerek szabályait vizsgáljuk ebben a részben. Két
+különbözõ szabály  $\alpha_1$ és $\alpha_2$ bal oldalai \emph{teljesen
+  átfedik egymást}, ha
+létezik egy olyan adatgráf, mely mindkét baloldalnak
+példánya. $\alpha_1$ és $\alpha_2$ \emph{részlegesen átfedik egymást},
+ha létezik egy olyan adatgráf, mely $\alpha_1$-nek példánya,
+$\alpha_2$ egy valódi (nem változó) részgráfjának példánya. Két ilyen
+részlegesen átfedõ bal oldalt \emph{kritikus pár}nak is szokták
+hívni. A jobb oldalak függvényében egy kritikus pár okozhatja a több
+különbözõ normál forma létezését is. Ciklikus struktúráknál az is
+elõfordulhat, hogy egy részgráf többféleképpen is illeszkedik
+ugyanarra a részlegesen átfedõ szabályra.
+
+\begin{pelda}
+  A következõ példa a részleges átfedést mutatja be:
+
+  \begin{tabular}{lcl}
+    f (g a 1) &\hspace{0.5cm}$\rightarrow$\hspace{0.5cm}& 1 \\
+    g a b &\hspace{0.5cm}$\rightarrow$\hspace{0.5cm}& a
+  \end{tabular}
+
+  A fenti átíró rendszerben a g 0 1 részgráf nyilván egy redex, és az
+  elsõ szabály bal oldala egy nem változó részgráfjának példánya, így
+  a két szabály részlegesen átfedi egymást. Ez azt jelenti, hogy
+  például az f (g 0 1) adatgráf redukálható f 0-ra vagy 1-re is.
+
+  Egy példa arra, hogyan illeszkedhet többféleképpen is egy részgráf a
+  megfelelõ részlegesen átfedõ szabályra:
+
+  \begin{tabular}{lcl}
+    r: F x, \\
+    x: F a &\hspace{0.5cm}$\rightarrow$\hspace{0.5cm}& r $\leftarrow$ a \\
+    \\
+    @1: F @2, \\
+    @2: F @1
+  \end{tabular}
+
+  Figyeljük meg, hogy az egyetlen szabály részlegesen átfedi önmagát
+  (a részleges átfedésnél nem kötöttük ki azt, hogy $\alpha_1 \not =
+  \alpha_2$).
+  Az alsó adatgráf kétféleképpen illeszkedik a felsõ szabályra:
+  egyrészt $\mu(r) = @1$, $\mu(x) = @2$, $\mu(a) = @1$, másrészt
+  $\mu(r) = @2$, $\mu(x) = @1$, $\mu(a) = @2$.
+\end{pelda}
+
+Ez a többértelmûség tehát egy potenciális forrása a konfluencia
+mentességnek, így ki kell küszöbölni a jelenséget. Szerencsére egy
+triviális módosítással ez megoldható, mely az átíró rendszerek
+lényegén nem változtat. Rendeljünk különbözõ prioritásokat a
+szabályokhoz, és illesztésnél mindig a legkisebb (vagy legnagyobb,
+definíció kérdése) prioritású szabályt próbáljuk elõször illeszteni. A
+Haskell nyelvben például ezt a prioritást egyszerûen a szabályok
+sorrendje adja. Illesztésnél mindig a forrás szövegben elõbb szereplõ
+szabályt vesszük figyelembe elõször.
+
+\subsubsection{Összehasonlítás}
+
+Egy átírási szabály bal oldala \emph{összehasonlító} akkor és csak
+akkor, ha létezik egy olyan változó csúcs azonosító, mely egynél
+többször szerepel benne. Egy gráfátíró rendszer \emph{összehasonlító}
+akkor és csak akkor, ha egy vagy több szabály bal oldala
+összehasonlító. Ekkor az illesztésnél a csúcs azonosítók egyenlõségét
+kell vizsgálni (összehasonlítani õket), és csak egyezés esetén
+illeszkedhet a szabály. Ez sajnos a gyakorlatban nem használható jól,
+mivel csak egy szintaktikai azonosságot vizsgálunk, de adott esetben
+elõfordulhat, hogy két részgráf szintaktikailag nem, de szemantikailag
+azonosak. A szemantikai azonosság viszont az általános esetben sajnos
+algoritmikusan nem eldönthetõ. Természetesen vannak olyan esetek,
+amikor ez eldönthetõ, például amikor a gráfok normál formában vannak
+(ilyenkor a szintaktikai egyenlõség implikálja a szemantikai
+azonosságot), de ez még nem elég a gyakorlati használhatóság
+szavatolásához. A mi szempontunkból megközelítve, a Haskell nem engedi
+meg a szabályok bal oldalán a duplikált változó elõfordulást, így ez
+nem veszélyezteti a konfluenciát.
+
+\begin{pelda}
+  A következõ példa egy összehasonlító gráfátíró rendszert mutat be:
+
+  \begin{tabular}{lcl}
+    isEqual x x &\hspace{0.5cm}$\rightarrow$\hspace{0.5cm}& True\\
+    \\
+    Start &\hspace{0.5cm}$\rightarrow$\hspace{0.5cm}& isEqual 2 (1+1)
+  \end{tabular}
+
+  Látható, hogy a start szimbólumra nem illeszkedik az egyetlen
+  szabály, mivel a két argumentum szintaktikailag nem azonos.
 \end{pelda}
 
 Konfluencia, tulajdonságok TRSekbõl.
