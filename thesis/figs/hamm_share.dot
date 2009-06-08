@@ -1,0 +1,17 @@
+digraph g {
+  node [shape = none]
+  1 [label = "@1: Cons 1 @2"]
+  2 [label = "@2: Merge @3 @4"]
+  3 [label = "@3: Map @5 @1"]
+  4 [label = "@4: Map @6 @1"]
+  5 [label = "@5: * @7"]
+  6 [label = "@6: * @8"]
+  7 [label = "@7: 2"]
+  8 [label = "@8: 3"]
+
+  1 -> 2
+  2 -> 3 -> 5 -> 7
+  2 -> 4 -> 6 -> 8
+  3 -> 1
+  4 -> 1
+}

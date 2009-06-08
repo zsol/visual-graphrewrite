@@ -62,7 +62,7 @@ kapcsolatot a programszöveg és a gráfátíró rendszer között.
   \begin{lstlisting}
     l = [71, 72]
   \end{lstlisting}
-  Ez definiál egy $l$ szimbólumot, melyhez egy kételemû listát köt,
+  Ez definiál egy $l$ szimbólumot, melyhez egy két elemû listát köt,
   melynek elemei rendre $71$ és $72$. Ez az írásmód tulajdonképpen egy
   szintaktikus egyszerûsítése a megfelelõ listának:
   \begin{lstlisting}
@@ -90,10 +90,10 @@ kapcsolatot a programszöveg és a gráfátíró rendszer között.
 \end{definicio}
 
 Az átírási szabályokat a programban található függvények definíciói
-adják. Egy redukciós lépés során tehát egy függvényszimbólumot
+adják. Egy redukciós lépés során tehát egy függvény szimbólumot
 (és argumentumait) helyettesítjük a függvény törzsével. Egy
-redukciós lépés csak egyetlen függvényszimbólumot eliminál, viszont
-természetesen a törzs tartalmazhat újabb függvényhívásokat.
+redukciós lépés csak egyetlen függvény szimbólumot eliminál, viszont
+természetesen a törzs tartalmazhat újabb függvény hívásokat.
 
 \begin{pelda}
   Természetesen egy függvény definícióját két részre lehet bontani. A
@@ -102,7 +102,7 @@ természetesen a törzs tartalmazhat újabb függvényhívásokat.
   melyeket késõbb illeszteni lehet konkrét argumentumokra. A jobb
   oldal (\emph{right hand side}, \emph{rhs}) pedig maga a
   függvénytörzs, melyben leírjuk, hogy a jobb oldalon megadott
-  mintaillesztések után a függvényszimbólumot és argumentumait milyen
+  mintaillesztések után a függvény szimbólumot és argumentumait milyen
   kifejezésre kell lecserélni. Ez jól megfeleltethetõ az átírási
   szabályok bal- és jobb oldalának, és valóban ez áll a definíció
   hátterében.
@@ -161,7 +161,7 @@ lépkedhet az elsõ esetben az átírási lépések között, a másodikban
 pedig a szabályok között elõre-hátra. A program célja az, hogy egy
 olyan eszközt biztosítson, amivel könnyebben érthetõek lesznek
 egyszerû, Haskell nyelven írt funkcionális kódok, ezáltal segíthet a
-teljesítményelemzésben, illetve azoknak, akik épp ismerkednek a
+teljesítmény elemzésben, illetve azoknak, akik épp ismerkednek a
 funkcionális programozás rejtelmeivel.
 
 A dolgozat hátralevõ részében elõször ismertetjük a gráfátíró
@@ -172,3 +172,6 @@ megfontolásokra térünk rá.
 %% coding: latin-2
 %% End:
 
+
+% LocalWords:  rewriting transformation left hand side lhs right rhs False pt
+% LocalWords:  position subfloat captionskip esmasodik

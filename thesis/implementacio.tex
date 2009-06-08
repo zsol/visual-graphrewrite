@@ -28,7 +28,7 @@ kirajzolásához a \cite[GraphViz]{graphviz} programcsomagot
 használtuk.
 
 \subsection{Könyvtárcsomag}
-A könyvtárcsomag felülete a \emph{GraphRewrite.hs} fáljban található,
+A könyvtárcsomag felülete a \emph{GraphRewrite.hs} fájlban található,
 mely valójában csak újra exportálja a \emph{GraphRewrite/Internal}
 könyvtár alatt található belsõ modulok nyilvános felületét. A
 \emph{SimpleHaskell} modul egy saját, leegyszerûsített
@@ -54,7 +54,7 @@ A \ref{fig:arch} ábra mutatja a különbözõ modulok kapcsolatát, azt a
 folyamatot, ami egy Haskell forrásfájlból gráfátíró rendszert
 készít. A szaggatott vonal modulon belüli információáramlást jelent, a
 többi pedig két különbözõ modul között mutatja ezt. Az \emph{AST}
-mozaikszó az ,,absztrakt szintaxisfa'' (angolul \emph{Abstract Syntax
+mozaik szó az ,,absztrakt szintaxisfa'' (angolul \emph{Abstract Syntax
   Tree}) rövidítése, a \emph{Convert} modul ezt állítja elõ. A két
 hatszöggel jelölt csúccsal jelölt mûveleteket a \emph{Rename} modul
 végzi, valamint a végsõ gráfátíró rendszert a \emph{RewriteApp}
@@ -162,3 +162,9 @@ adatstruktúra bevezetésével.
 %% Local Variables:
 %% coding: latin-2
 %% End:
+
+% LocalWords:  GraphRewrite GraphViz hs Internal SimpleHaskell GHC Convert Tree
+% LocalWords:  Rename RewriteApp RewriteTypes Rewrite Abstract Syntax Context
+% LocalWords:  PointedGraph rewriteStepFine RewriteSystem RewriteTree Zippers
+% LocalWords:  via Differentiation nél Branch List ListF AX TreeF XF type left
+% LocalWords:  RewriteBranch rght

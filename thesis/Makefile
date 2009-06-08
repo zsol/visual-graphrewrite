@@ -6,7 +6,7 @@ DOTFLAGS := -Gcharset=latin1
 eps = eltecimer.eps
 figs = arch.dot grw_5.dot grw_14.dot grw_15.dot \
 	grw_new_28.dot graf_ekv_izo.dot headlistlist.dot \
-	rwr_redir.dot
+	rwr_redir.dot hamm_share.dot hamm_recurse.dot
 
 all: aux/diplomamunka.dvi
 	latex -file-line-error -halt-on-error -output-directory=aux diplomamunka.tex
