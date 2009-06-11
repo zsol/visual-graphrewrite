@@ -1,7 +1,3 @@
-%TODÕ
-%egysegesiteni a tabularokat, listingeket, eqnarrayokat, stb.
-%fontok.
-
 \chapter{Elméleti alapok}
 
 Ebben a fejezetben a gráfátíró rendszerek elméleti alapjaival
@@ -183,7 +179,6 @@ formában kezelni azokat, úgyhogy megadunk egy rövidített formát is.
 A gráfátíró rendszerek szintaxisa tehát a következõképpen írható le:
 
 \begin{align*}
-  \label{tab:canonicalgrs}
   \tt{CanonicalGRS} &= \tt{Rule} \hogy \tt{Rule} \tt{CanonicalGRS}\\
   \tt{Rule} &= \tt{RedexPattern} \lit{$\rightarrow$} \{\tt{Contractum}\} \tt{Redirection} \\
   \tt{Contractum} &= \tt{ContractumPattern} \\
@@ -196,7 +191,9 @@ Ahol a \predef{Nodeid} és a \predef{Graph} definíciója az adatgráfoknál
 megadottal egyezik meg. A fenti definícióból is látszik, hogy a
 szabályok az $r : \alpha_r \rightarrow \beta_r, \varphi_r$ alakot
 követik, ahol $\beta_r$ opcionális. Ebben a jelölésben az $\alpha_r$-t
-nevezik \emph{redex mintá}nak, a nem kötelezõ $\beta_r$ neve
+nevezik \emph{redex mintá}nak (ami a \emph{reducible expression}, azaz
+ redukálható kifejezés, angol szófordulatból származik)
+ a nem kötelezõ $\beta_r$ neve
 \emph{kontraktum minta}, a $\varphi_r$ pedig az átirányítás vagy
 \emph{redirekció}.
 
@@ -323,7 +320,7 @@ az illeszkedés fogalmát, majd rátérünk a gráfátírás menetére.
 \subsubsection{Redexek}
 
 Ahogy a korábban bemutatott gráfátíró rendszerek kanonikus
-szintaxisából (\ref{tab:canonicalgrs}) is látszik, a redex minták
+szintaxisából is látszik, a redex minták
 szintaktikusan ekvivalensek az adatgráfokkal. Egy különbséget viszont
 már fentebb is említettünk: a minták csak konstans szimbólumokból és
 változó csúcs azonosítókból állnak. Egy redex minta \emph{példányá}nak
