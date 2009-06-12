@@ -24,8 +24,24 @@ szabályt, ezáltal új gráfot (állapotot) kapva. A szabály alkalmazása
 illesztjük a szabály bal oldalát. Ezt a folyamatot mintaillesztésnek
 hívjuk.
 
-Ezt a modellt fogjuk használni a Haskell esetében, ami egy lusta
-funkcionális programozási nyelv. A lustaság ebben az esetben azt
+Funkcionális nyelvek esetén azért érdemes gráfátíró rendszerekkel
+foglalkozni, mert ezek ismeretében a programozó jobban átlátja a saját
+kódját, tudni fogja, hogy pontosan mi történik a háttérben a programja
+futása közben. Az adatgráfok és az átírás folyamatának ismerete segít
+megbecsülni az adatcsúcsok számát a program futása közben, ami egyenes
+arányban áll a szükséges memóriával; illetve a (késõbb részletesen
+tárgyalt) redukciós lépések hasonlóképpen egyenes arányban állnak a
+tényleges futási idõvel.
+
+Ezt a modellt fogjuk használni a Haskell\footnote{Egy sokat ajánlott
+  bevezetõ a nyelvbe, mely elsõsorban azoknak szól, akik még nem
+  találkoztak funkcionális nyelvekkel: \cite{yaht}} esetében, ami egy lusta
+funkcionális programozási nyelv\footnote{Egy bevezetõ a nyelv 98-as
+  verziójába (mely az 1998-ban kiadott szabványt követi) olyanoknak,
+  akik már találkoztak legalább egy funkcionális nyelvvel:
+  \cite{tutorial98}}. A lustaság\footnote{A lustaság
+  megnyilvánulásáról a Haskell programozási nyelv esetében
+  \acite{laziness} ír} ebben az esetben azt
 eredményezi, hogy könnyen, elegánsan tudunk kezelni végtelen
 adatszerkezeteket anélkül, hogy ehhez különösebb memória vagy
 háttértár igényeket támasztanánk. A gráfátíró rendszerek segítségével
@@ -68,13 +84,49 @@ kapcsolatot a programszöveg és a gráfátíró rendszer között.
   figyelhetünk meg: a $(:)$  ,,listabõvítõ operátort'', mely a
   baloldali argumentumát (egy elem) a jobboldali argumentuma (egy
   lista) elé helyez; valamint a $[]$ üres lista konstruktort. A fenti
-  kifejezéshez tartozó adatgráfot \aref{fig:lstdatag} ábra mutatja.
+  kifejezéshez tartozó adatgráfot \aref{fig:lstdatag}. ábra mutatja.
   \begin{figure}[htb]
     \begin{center}
-      \caption{Egy kételemû listához tartozó adatgráf}
+      \caption{Egy kételemû listához tartozó adatgráf \label{fig:lstdatag}}
       \includegraphics[height=0.3\textheight]{eps/grw_5.eps}
     \end{center}
-    \label{fig:lstdatag}
+  \end{figure}
+\end{pelda}
+
+Az adatgráfok nagy ereje abban rejlik, hogy tudunk velük úgynevezett
+\emph{megosztott kifejezéseket} ábrázolni. Ez azt jelenti, hogy ha
+például kétszer kell felhasználnunk egy kifejezésben egy
+részeredményt, az nem kell, hogy kétszer szerepeljen az
+adatgráfban. Másképpen megfogalmazva: a részeredményeket el tudjuk
+tárolni adatgráfoknál.
+
+\begin{pelda}
+  Nézzünk tehát egy olyan kifejezést, aminél hasznos lehet a
+  részeredmények eltárolása. Egy egyszerû példa erre a
+  \begin{verbatim}
+    (5+5)! * (5+5)!
+  \end{verbatim}
+  kifejezés, melyben kétszer lehetne kiszámolni az ötnek és az ötnek
+  az összegét, majd ennek a faktoriálisát. Nézzük tehát ezt
+  kétféleképpen adatgráfként ábrázolva: a részeredmények eltárolását
+  \aref{fig:sharingyes} ábra mutatja, míg a naiv megoldást
+  \aref{fig:sharingno} ábra.
+
+  \begin{figure}[htb]
+    \begin{center}
+      \caption{Az (5+5)! * (5+5)! kifejezés adatgráfjai \label{fig:sharing}}
+      \captionsetup{position=top}
+      \subfloat[Megosztás nélkül]{
+        \label{fig:sharingno}
+        \includegraphics[height=0.3\textheight]{eps/sharing1.eps}
+      }
+      \vrule
+      \subfloat[Megosztással]{
+        \hspace{1cm}
+        \label{fig:sharingyes}
+        \includegraphics[height=0.3\textheight]{eps/sharing2.eps}
+      }
+    \end{center}
   \end{figure}
 \end{pelda}
 
@@ -109,25 +161,6 @@ természetesen a törzs tartalmazhat újabb függvény hívásokat.
   \end{lstlisting}
   Ebbõl a kódrészletbõl két átírási szabály keletkezik --- soronként
   egy.
-  \begin{figure}[htb]
-    \captionsetup{position=top}
-    \captionsetup[subfloat]{captionskip=-20pt}
-    \begin{center}
-      \subfloat[Elsõ sor]{
-        \label{fig:eselso}
-        \includegraphics{eps/grw_14.eps}
-        \captionsetup{position=top}
-      }
-      \subfloat[Második sor]{
-        \captionsetup{position=top}
-        \label{fig:esmasodik}
-        \includegraphics[height=7cm]{eps/grw_15.eps}
-      }
-      \vspace{28pt}
-      \caption{A logikai \emph{és} két szabálya}
-    \end{center}
-    \label{fig:esszabaly}
-  \end{figure}
   Látható, ahogy az elsõ szabályban két különbözõ csúcsba ugyanaz a
   (\emph{False}) érték íródott. Ez azt jelenti, hogy a kiértékelés
   közben kétszer tárolódik el ez az érték (egyszer a
@@ -139,6 +172,26 @@ természetesen a törzs tartalmazhat újabb függvény hívásokat.
   Itt az \emph{f} szimbólum egy referencia lesz arra a kifejezésre,
   ami illeszkedett a \emph{False} konstruktorra. Az így kialakult
   szabály hasonlít \aref{fig:esmasodik} ábrára.
+
+  \begin{figure}[htb]
+    \captionsetup{position=top}
+    \captionsetup[subfloat]{captionskip=-20pt}
+    \caption{A logikai \emph{és} két szabálya}
+    \begin{center}
+      \subfloat[Elsõ sor\label{fig:eselso}]{
+        \includegraphics{eps/grw_14.eps}
+        \captionsetup{position=top}
+      }
+      \subfloat[Második sor\label{fig:esmasodik}]{
+        \captionsetup{position=top}
+
+        \includegraphics[height=7cm]{eps/grw_15.eps}
+      }
+      \vspace{28pt}
+    \end{center}
+    \label{fig:esszabaly}
+  \end{figure}
+
 
   A második szabály arra mutat példát, hogy a bal oldalon kialakult
   kötéseket használhatjuk a jobb oldalon is, sõt, hatékonysági okokból

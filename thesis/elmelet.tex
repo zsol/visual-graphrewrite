@@ -65,7 +65,7 @@ lehetnek. Ezek az argumentumok tulajdonképpen csúcs azonosítók, melyek
 definiálják az éleket a gráf ábrázolt formájában.
 
 \begin{pelda}
-  \Aref{fig:lstdatag} ábrán található adatgráf kanonikus alakja (a
+  \Aref{fig:lstdatag}. ábrán található adatgráf kanonikus alakja (a
   $(:)$ konstruktornak most a két paraméteres \con{Cons}, a $[]$
   konstruktornak pedig a \con{Nil} felel meg):
 
@@ -116,7 +116,7 @@ tartalmazza mindazokat a csúcsokat, melyek elérhetõek $n$-bõl.
 \end{megj}
 
 \begin{pelda}
- \Aref{fig:lstdatag} ábrán látható adatgráf például összefüggõ, de
+ \Aref{fig:lstdatag}. ábrán látható adatgráf például összefüggõ, de
  körmentes és zárt.
 
  \begin{figure}[htb]
@@ -126,7 +126,7 @@ tartalmazza mindazokat a csúcsokat, melyek elérhetõek $n$-bõl.
      \includegraphics[height=0.3\textheight]{eps/grw_new_28.eps}
    \end{center}
  \end{figure}
- \Aref{fig:inflist} ábrán található adatgráf a végtelen hosszú, csupa
+ \Aref{fig:inflist}. ábrán található adatgráf a végtelen hosszú, csupa
  tizenegyeseket tartalmazó listához tartozik. Kanonikus alakja:
 
  \begin{canonDG}
@@ -158,7 +158,7 @@ csúcs azonosítókra, akkor a másik gráf kanonikus alakját
 kapjuk. Figyelembe véve azt, hogy az adatgráf és a kanonikus alakja
 között is megadható egy bijekció, ebbõl következik, hogy ha két gráf
 ekvivalens, akkor létezik köztük gyökértartó izomorfizmus. Ezt a
-gondolatmenetet vázolja \aref{fig:grafekvizo} ábra.
+gondolatmenetet vázolja \aref{fig:grafekvizo}. ábra.
 
 \section{Átíró rendszerek}
 
@@ -194,15 +194,16 @@ követik, ahol $\beta_r$ opcionális. Ebben a jelölésben az $\alpha_r$-t
 nevezik \emph{redex mintá}nak (ami a \emph{reducible expression}, azaz
  redukálható kifejezés, angol szófordulatból származik)
  a nem kötelezõ $\beta_r$ neve
-\emph{kontraktum minta}, a $\varphi_r$ pedig az átirányítás vagy
-\emph{redirekció}.
+\emph{csere minta}\footnote{A táblázatokban a csere minta angol
+  megfelelõje, a contractum pattern szerepel}, a $\varphi_r$ pedig az
+átirányítás vagy \emph{redirekció}.
 
 Egy szabályban minden csúcs azonosító legfeljebb egyszer lehet
 definiálva, illetve a jobb oldalon szereplõ azonosítókhoz kell
 tartozzon ugyanezen a jobb oldalon definíció vagy szerepelniük kell a
 bal oldalon. A redirekció bal oldalán található azonosítónak mindig
 meg kell egyeznie a redex minta gyökerével (pontosabban annak
-azonosítójával), a jobb oldali csúcs azonosító pedig vagy a kontraktum
+azonosítójával), a jobb oldali csúcs azonosító pedig vagy a csere
 minta gyökere, vagy egy olyan azonosító, ami szerepel a redex
 mintában.
 
@@ -212,19 +213,27 @@ hívjuk. Az a szimbólum, mely egyik minta elsõ elemeként se szerepel, a
 csak a minta fejében szerepelhetnek, hanem bárhol máshol a mintában.
 
 \begin{pelda}
-  A következõ pár sor Haskell kód definiál egy olyan függvényt, ami
-  egy lista elsõ elemét adja vissza, egy definíció szerint
-  megvalósított faktoriális függvényt, illetve egy kezdõszimbólumot.
+  A következõ pár sor Haskell kód definiál egy olyan függvényt,
+  melynek neve \emph{head}, és
+  egy lista elsõ elemét adja vissza\footnote{Figyeljük meg, hogy üres
+    listára nincs definiálva a \emph{head} függvény. Ez nem probléma
+    egészen addig, amíg üres listára nem próbáljuk
+    illeszteni. Haskell-ben ekkor egy programhiba üzenetet kapunk, az
+    elméletben viszont egyszerûen nem illeszkedik ilyen esetben a
+    szabály}, egy definíció szerint (a szokásos módon) rekurzióval
+  megvalósított faktoriális függvényt, illetve egy kezdõszimbólumot,
+  mely a késõbbiekben a gráfátírás kezdõpontja lesz.
   \begin{lstlisting}
     head (a:b) = a
-
     fact 0 = 1
     fact n = n * fact (n-1)
 
     start = fact (head [1000])
   \end{lstlisting}
   Ebbõl a pár sorból felírhatunk egy olyan gráfátíró rendszert,
-  melynek kanonikus alakja:
+  melyben négy szabály van (minden sornak megfelel egy, figyeljük meg,
+  hogy a faktoriális függvényhez tartozó két sorból is két külön
+  szabály keletkezik). Ennek a rendszernek a kanonikus alakja a következõ:
   \begin{canonGRS}
     r:~\con{Head}~x, \n
     x:~\con{Cons}~a~b & \rightarrow & r \leftarrow a \n
@@ -232,12 +241,17 @@ csak a minta fejében szerepelhetnek, hanem bárhol máshol a mintában.
     r:~\con{Fact}~x, \n
     x:~0 & \rightarrow & r':~1, ~ r \leftarrow r' \n
     \n
-    r:~\con{Fact}~n & \rightarrow & r':~*~n~u, ~ u:~\con{Fact}~v, \n
-    & & v:~-~n~w, w:~1, \n
+    r:~\con{Fact}~n & \rightarrow & r':~*~n~u, \n
+    & & u:~\con{Fact}~v, \n
+    & & v:~-~n~w, \n
+    & & w:~1, \n
     & & r \leftarrow r' \n
     \n
-    r:~\con{Start} & \rightarrow & r':~\con{Fact}~a, ~ a:~\con{Head}~b, \n
-    & & b:~\con{Cons}~c~d, ~ c:~1000, ~ d:~\con{Nil} \n
+    r:~\con{Start} & \rightarrow & r':~\con{Fact}~a,\n
+    & & a:~\con{Head}~b, \n
+    & & b:~\con{Cons}~c~d,\n
+    & & c:~1000,\n
+    & & d:~\con{Nil} \n
     & & r \leftarrow r' \n
   \end{canonGRS}
 \end{pelda}
@@ -298,7 +312,7 @@ olvasóra bízzuk, de megtalálható a \cite{cleanbook} 162. és
     adni nekik. Ez az egyik legnagyobb különbség a két alak között,
     fõleg ezen múlik az olvashatóság.
   \item A redirekció megadása. A redex minta gyökerét vagy a
-    kontraktum minta gyökerére irányítjuk, vagy egy csúcsos jobb oldal
+    csere minta gyökerére irányítjuk, vagy egy csúcsos jobb oldal
     esetén az egyetlen csúcs azonosítóra.
 \end{enumerate}
 
@@ -306,7 +320,7 @@ olvasóra bízzuk, de megtalálható a \cite{cleanbook} 162. és
 
 A gráfátíró rendszerekben található minták nyílt gráfok, tehát
 mindegyikben mindig létezik legalább egy változó csúcs azonosító. Ez
-igaz a redex illetve a kontraktum mintákra is. A redirekció azt
+igaz a redex illetve a csere mintákra is. A redirekció azt
 definiálja, hogy melyik csúcsba menõ éleket melyikbe kell átirányítani
 a szabály alkalmazása során. Ez tehát azt jelenti, hogy a
 $\rightarrow$ bal oldalán levõ csúcs azonosítónak megfelelõ csúcsba
@@ -354,7 +368,7 @@ x_n$, igaz a következõ: $\IC_\gamma(\mu(x))=\text{S} \mu(x_1) \mu(x_2)
 \end{megj}
 
 \begin{pelda}
-  \Aref{tab:headfactcanonical} példában leírt gráfátíró rendszert
+  Az elõzõ (faktoriálisos) példában leírt gráfátíró rendszert
   figyelembe véve, nézzük a következõ kifejezéshez tartozó adatgráfot:
   \begin{lstlisting}
     head [[36]]
@@ -393,29 +407,29 @@ kezdõ szabályt mindig kihagyjuk a példa leírásokból, és a kívánt
 gráfot közvetlenül adjuk meg.
 
 Az átírási lépések célja, hogy az eredeti adatgráfból és a
-\emph{kontraktum}nak nevezett segédgráfból egy újat építsünk az élek
-átirányításának segítségével. Erre a kontraktum gráfra csak akkor van
+\emph{segédgráfból} egy újat építsünk az élek
+átirányításának segítségével. Erre a segédgráfra csak akkor van
 szükségünk, amikor az illeszkedõ szabály jobb oldalán megadtunk
-kontraktum mintát. Precízebben lépésekbe foglalva:
+csere mintát. Precízebben lépésekbe foglalva:
 
 \begin{enumerate}
   \item \textbf{Illesztés.} Válasszunk ki egy redexet a hozzá illeszkedõ
     szabállyal és a $\mu$ leképezéssel.
-  \item \textbf{Kontraktum.} Építsük fel a kontraktumot a következõképpen
+  \item \textbf{Csere.} Építsük fel a segédgráfot a következõképpen
     (amennyiben az illeszkedõ szabály jobb oldalán található
-    kontraktum minta):
+    csere minta):
     \begin{enumerate}
       \item Generáljunk új egyedi konstans csúcs azonosítókat (a
         $\gamma$-ban találhatóktól különbözõket) minden változó csúcs
-        azonosító definícióhoz a kontraktum mintából. Az így kialakult
+        azonosító definícióhoz a csere mintából. Az így kialakult
         változó $\rightarrow$ konstans leképezés legyen $\mu'$. Ekkor
         $\mu'$ értékkészlete tartalmazza az átírás során újonnan
         létrejött csúcsok azonosítóit.
       \item Legyen $\mu'' = \mu \cup \mu'$. Alkalmazzuk $\mu''$-t a
-        kontraktum mintában található csúcs azonosítókra, így megkapva
-        a $\kappa$ kontraktum gráfot.
+        csere mintában található csúcs azonosítókra, így megkapva
+        a $\kappa$ segédgráfot.
     \end{enumerate}
-    Amennyiben a kontraktum minta nincs megadva, akkor $\kappa$ üres.
+    Amennyiben a csere minta nincs megadva, akkor $\kappa$ üres.
   \item \textbf{Építés.} Legyen az új gráfunk $\gamma' = \gamma \cup \kappa$.
   \item \textbf{Átirányítás.} A redirekció egy szabályban az $r \rightarrow n$
     alakot ölti, ahol $r$ a redex minta gyökere. Ebben a lépésben
@@ -469,14 +483,17 @@ esetet:
   Az ehhez tartozó $\rho$ átírási szabályok halmaza a következõ:
 
   \begin{eqnarray} %Ez sajnos spec eset a szamozas miatt!
-    x: \text{Add}~y~z, \nonumber\\
+    x: \text{Add}~y~z, \n
     y: \text{Zero} & \hspace{0.5cm}\rightarrow\hspace{0.5cm} & x \leftarrow z \label{tab:rule1}\\
-    \nonumber\\
-    x: \text{Add}~y~z, \nonumber\\
-    y: \text{Succ}~a &\hspace{0.5cm}\rightarrow\hspace{0.5cm}& m: \text{Succ}~n, n: \text{Add}~a~z, \nonumber\\
+    \n
+    x: \text{Add}~y~z, \n
+    y: \text{Succ}~a &\hspace{0.5cm}\rightarrow\hspace{0.5cm}& m: \text{Succ}~n, \n
+    & & n: \text{Add}~a~z, \n
     & & x \leftarrow m \label{tab:rule2}\\
-    \nonumber\\
-    x: \text{Start} &\hspace{0.5cm}\rightarrow\hspace{0.5cm}& m: \text{Add}~n~o, n: \text{Succ}~o, o: \text{Zero}, \nonumber\\
+    \n
+    x: \text{Start} &\hspace{0.5cm}\rightarrow\hspace{0.5cm}& m: \text{Add}~n~o, \n
+    & & n: \text{Succ}~o, \n
+    & & o: \text{Zero}, \n
     & & x \leftarrow m \label{tab:rule3}
   \end{eqnarray}
 
@@ -485,9 +502,9 @@ esetet:
     \item \textbf{Illesztés.} Az egyetlen szabály, amelyik illeszkedik
       a start csúcsra \aref{tab:rule3}, az illesztéshez tartozó
       leképezés pedig $\mu(x) = \text{@StartNode}$.
-    \item \textbf{Kontraktum.} Az új generált azonosítók és a hozzájuk
+    \item \textbf{Csere.} Az új generált azonosítók és a hozzájuk
       tartozó leképezés: $\mu'(m) = @M$, $\mu'(n) = @N'$, $\mu'(o) =
-      @O$. A $\mu''$ alkalmazása nincs hatással a kontraktum mintára,
+      @O$. A $\mu''$ alkalmazása nincs hatással a csere mintára,
       mivel $x$ nem fordul benne elõ. A $\kappa$ tehát:
 
       \begin{canonDG}
@@ -506,7 +523,7 @@ esetet:
       \end{canonDG}
     \item \textbf{Átirányítás.} Az átirányítás során minden
       argumentumként elõforduló @StartNode lecserélõdik @M-re. Az
-      ennek eredményeképpen születõ $\eta$ (melyet \aref{fig:rwrredir}
+      ennek eredményeképpen születõ $\eta$ (melyet \aref{fig:rwrredir}.
       ábra is mutat):
 
       \begin{canonDG}
@@ -645,9 +662,17 @@ Egy $\rho$ gráfátíró rendszer \emph{konfluens} (vagy
 \emph{Church-Rosser tulajdonságú}) akkor és csak akkor, ha bármely két
 (divergens) $\gamma \rastar \gamma_1$, $\gamma \rastar \gamma_2$
 redukciós sorozatra létezik két (konvergens) $\gamma_1 \rastar \eta$,
-$\gamma_2 \rastar \eta$ redukciós sorozat. Ha $\rho$ konfluens, akkor
+$\gamma_2 \rastar \eta$ redukciós sorozat. A definíciót mutatja be
+\aref{fig:konflu}. ábra. Ha $\rho$ konfluens, akkor
 minden $\gamma$ adatgráfnak egyértelmûen létezik normál formája
 $\rho$-ra nézve.
+
+\begin{figure}[htb]
+  \begin{center}
+    \caption{A Church-Rosser tulajdonság \label{fig:konflu}}
+    \includegraphics[height=0.3\textheight]{eps/konfluencia.eps}
+  \end{center}
+\end{figure}
 
 Egy alapvetõen determinisztikus programozási nyelv szempontjából
 kritikus az, hogy minden helyes kifejezés kiértékelése egyértelmû
@@ -655,7 +680,7 @@ eredményt adjon, így az
 egyértelmû normál forma, és ennek kapcsán a konfluencia kívánatos
 tulajdonságok. Term átíró rendszereknél két fontos gátja van a
 konfluenciának; mivel ezek általánosításai a gráfátíró rendszerek, így
-ezeket vizsgáljuk meg.
+ezeket vizsgáljuk meg elõször.
 
 \subsubsection{Többértelmûség}
 
@@ -882,6 +907,7 @@ azt demonstrálja, hogyan lehet számítástudományi szempontból
   \begin{figure}[hb]
     \captionsetup{position=top}
     \captionsetup[subfloat]{captionskip=-20pt}
+    \caption{Hamming számok listájának adatgráfjai}
     \begin{center}
       \subfloat[Hamming számok rekurzióval]{
         \label{fig:hammrec}
@@ -896,7 +922,6 @@ azt demonstrálja, hogyan lehet számítástudományi szempontból
         \includegraphics[height=0.4\textheight]{eps/hamm_share.eps}
       }
       \vspace{0.5cm}
-      \caption{Hamming számok listájának adatgráfjai}
     \end{center}
     \label{fig:hamm}
   \end{figure}

@@ -63,7 +63,7 @@ végzi, valamint a végsõ gráfátíró rendszert a \emph{RewriteApp}
 
 \begin{figure}[htb!]
   \begin{center}
-    \includegraphics{eps/arch.eps}
+    \includegraphics[width=16cm]{eps/arch.eps}
     \caption{A könyvtárcsomag architektúrája}
     \label{fig:arch}
   \end{center}
@@ -88,8 +88,8 @@ hatékonyan lépkedni, valahogy el kell tárolni az aktuálisan
 megjelenített lépést, valamint ahhoz, hogy visszafelé is tudjunk
 lépni (akár a kezdõ kifejezésig), az összeset ezen kívül is. Ez egy
 tipikus esete az egy-fókuszú adatszerkezeteknek, melyhez definiálni
-kell egy környezetet (\emph{Context}), és egy adott állapotot jelen
-esetben a $(\text{\emph{RewriteTree}}, \text{\emph{Context}})$ pár
+kell egy környezetet (\emph{Context}), és egy adott állapotot ekkor
+a $(\textit{RewriteTree}, \textit{Context})$ pár
 reprezentálja. A \cite{zipper} \emph{Zippers via Differentiation}
 alpontja szerint a \emph{Context} típusát úgy kapjuk, ha a
 \emph{RewriteTree} típusát deriváljuk.
@@ -118,8 +118,8 @@ szerint:
   \partial_A(\mathit{ListF}_AX) \cong X \label{math:listderiv}
 \end{eqnarray}
 A fa funktor deriváltjához fel kell használnunk a következõ
-(fixpontokra vonatkozó) deriválási szabályt: $\partial_X(\mu X.F X)
-\cong \mu X.F X \times \partial_XF(\mu X.F X)$
+(fixpontokra vonatkozó) deriválási szabályt: $\partial_X(\mu Y.F Y)
+\cong \mu Y.F Y \times \partial_XF(\mu Y.F Y)$
 \begin{eqnarray}
   \partial_X(\mathit{TreeF}_AX) &\cong& A \times \partial_X(\mu
   Y.\mathit{ListF}_X Y) \nonumber\\
@@ -131,7 +131,7 @@ azonosságot:
 $$ \partial_X(\mathit{TreeF}_AX) \cong A \times \mu Y.\mathit{ListF}_X
 Y \times \mu Y.\mathit{ListF}_X Y $$
 Ahol $X$ helyére $\mathit{Tree} A$-t helyettesítve:
-$$ \partial_X(\mathit{TreeF}_A(\mathit{Tree} A)) \cong A \times
+$$ \partial\mathit{TreeF}_A(\mathit{Tree} A) \cong A \times
 \mathit{List}(\mathit{Tree} A) \times \mathit{List}(\mathit{Tree}A) $$
 Ahonnan \cite{zipper} szerint megkapjuk a környezetet:
 $$ \mathit{Context}_{\mathit{Tree}_A} \cong \mathit{List}(A \times
