@@ -20,10 +20,10 @@ import System.Exit
 
 type AssocList a b = [(a, b)]
 
-handleKeys :: (Monad m, G.WidgetClass w) => AssocList String (w -> MVar a -> MVar b -> m c) -> w -> MVar a -> MVar b -> G.Event -> m Bool
-handleKeys m w ma mb (G.Key {G.eventKeyName = key})
+handleKeys :: (Monad m, G.WidgetClass w) => AssocList String (w -> MVar a -> m c) -> w -> MVar a -> G.Event -> m Bool
+handleKeys m w ma (G.Key {G.eventKeyName = key})
     = case lookup key m of
-          Just a -> a w ma mb >> return True
+          Just a -> a w ma >> return True
           _      -> return True
 
 updateCanvasTo :: G.DrawingArea -> PointedGraph -> FilePath -> RewriteSystem -> Supply Int -> IO Bool
