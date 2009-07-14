@@ -8,6 +8,8 @@ import System.IO.Unsafe
 import Test.LazySmallCheck
 import qualified Data.IntMap as IM
 import Data.List
+import Data.Function
+
 
 {-
 Serial instance needed:
@@ -84,7 +86,7 @@ instance Serial Nat where
 
 natToInt :: Nat -> Int
 natToInt Zero = 0
-natToInt (Succ n) = 1 + natToInt n
+natToInt (Succ n) =  (1+) $! (natToInt n)
 
 ---------------------------------
 
@@ -132,7 +134,7 @@ allTests = do
         p _          = False
 
     smallCheck 30 $ \(PGraph e g) -> -- unsafePerformIO $ timeOut2s $
-            not (ref e) && allReferenceDefined e g  ==>  p (fst (flattenSApp e g))
+            not (ref e) && allReferenceDefined e g  ==>  p (fst (flattenSApp defaultRS e g))
 
 {-
     sm $ interpreter "start = f True; f x = x" == "True"
