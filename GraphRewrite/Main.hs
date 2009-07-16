@@ -33,14 +33,15 @@ import Prelude hiding (exp)
 --------------------------------------
 
 data State = State
-    { current :: RewriteTree
-    , history :: Context
-    , rewrsys :: RewriteSystem
-    , idsupp  :: Supply Int
-    , sWindow :: G.Window
+    { current  :: RewriteTree
+    , history  :: Context
+    , rewrsys  :: RewriteSystem
+    , idsupp   :: Supply Int
+    , sWindow  :: G.Window
     , sDrawing :: G.DrawingArea
-    , dotexe :: FilePath
-    , opts :: Options
+    , sMap     :: G.DrawingArea
+    , dotexe   :: FilePath
+    , opts     :: Options
     }
 
 
@@ -112,9 +113,10 @@ runGUI mstate = do
   G.onDestroy window (cleanup mstate)
 
   canvas <- G.xmlGetWidget xml G.castToDrawingArea "drawingarea"
+  maparea <- G.xmlGetWidget xml G.castToDrawingArea "map"
 
   modifyMVar_ mstate $ \ state ->
-      return state { sWindow = window, sDrawing = canvas }
+      return state { sWindow = window, sDrawing = canvas, sMap = maparea }
 
   configureBindings xml mstate
 
@@ -126,6 +128,7 @@ runGUI mstate = do
   updateCanvas svg canvas
 
   G.onExposeRect canvas (const $ refresh mstate >> return ())
+  G.onExposeRect maparea (const $ refresh mstate >> return ())
 
   return ()
 
@@ -207,6 +210,13 @@ refresh mstate = do
   when (debug $ opts state) (putStr "DEBUG: " >> pprint pg)
 
   updateCanvasTo (sDrawing state) pg (dotexe state) (rewrsys state) ids
+
+  dg <- stateToDot (current state) (history state)
+
+  when (debug $ opts state) (putStrLn $ "DEBUG: " ++ show dg)
+
+  svgmap <- dotToSVG (dotexe state) (show dg)
+  updateCanvas svgmap (sMap state)
 
 newState :: Options -> RewriteSystem -> Supply Int -> RewriteTree -> IO (MVar State)
 newState opts rs ids tree = do

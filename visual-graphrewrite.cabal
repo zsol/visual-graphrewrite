@@ -38,7 +38,6 @@ library
         build-depends:    fgl >= 5.4.2.2
         build-depends:    pretty >= 1.0.1.0
         build-depends:    graphviz == 2009.5.*
-        build-depends:    uniqueid >= 0.1
         other-modules:    GraphRewrite.Main.CmdLineOpts,
                           GraphRewrite.Main.Visualize
         ghc-options:      -Wall -fno-warn-name-shadowing -fno-warn-incomplete-patterns
@@ -61,7 +60,7 @@ executable visual-graphrewrite
         build-depends:    svgcairo >= 0.10.0
         build-depends:    cairo >= 0.10.0
         build-depends:    glade >= 0.10.0
-        build-depends:    uniqueid >= 0.1
+        build-depends:    isevaluated >= 0.3
         main-is:    GraphRewrite/Main.hs
         other-modules:       GraphRewrite,
                      GraphRewrite.Internal.Rename,

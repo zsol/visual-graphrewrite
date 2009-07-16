@@ -3,7 +3,7 @@ module GraphRewrite.Internal.RewriteTypes
 
 where
 
-  import Data.IntMap
+  import Data.IntMap hiding (map)
   import Prelude hiding (lookup, exp)
 
   -- | Arity is a non-negative integer which represents the number of arguments a function can take.
