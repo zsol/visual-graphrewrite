@@ -78,11 +78,14 @@ convLit (HsDoublePrim n) = show n
 convRhs :: HsRhs -> Expr String
 convRhs (HsUnGuardedRhs expr) = convExpr expr
 
+convQOp :: HsQOp -> Expr String
+convQOp (HsQVarOp qn) = convQName qn
+convQOp (HsQConOp qn) = convQName qn
+
 convExpr :: HsExp -> Expr String
 convExpr (HsVar qn) = convQName qn
 convExpr (HsApp exp1 exp2)  = Apply [convExpr exp1, convExpr exp2]
-convExpr (HsInfixApp exp1 (HsQVarOp qn) exp2) = Apply [convQName qn, convExpr exp1, convExpr exp2]
-convExpr (HsInfixApp exp1 (HsQConOp qn) exp2) = Apply [convQName qn, convExpr exp1, convExpr exp2]
+convExpr (HsInfixApp exp1 op exp2) = Apply [convQOp op, convExpr exp1, convExpr exp2]
 convExpr (HsLit literal)    = Lit (convLit literal)
 convExpr (HsLet decls exp)  = Let (map convDecl decls) (convExpr exp)
 convExpr (HsCon (UnQual (HsIdent con))) = Cons con
@@ -90,4 +93,10 @@ convExpr (HsParen exp) = convExpr exp
 convExpr (HsList []) = Cons "[]"
 convExpr (HsList (h:t)) = Apply [Cons ":", convExpr h, convExpr (HsList t)]
 convExpr (HsTuple exps) = Apply $ Cons "Tuple" : map convExpr exps
+convExpr (HsLeftSection exp op) = Apply [convQOp op, convExpr exp]
+--convExpr (HsLambda loc pats exp) = convExpr $ HsLet [HsFunBind [HsMatch loc "lambda" pats (HsUnGuardedRhs exp) []]] (HsVar $ UnQual $ HsIdent "lambda")
+--convExpr (HsRightSection op exp) = convExpr $ HsLambda emptyLoc [HsPVar $ HsIdent "x"]
 convExpr a = Lit ("UNIMPLEMENTED: " ++ show a)
+
+emptyLoc :: SrcLoc
+emptyLoc = SrcLoc "dummy" 0 0
