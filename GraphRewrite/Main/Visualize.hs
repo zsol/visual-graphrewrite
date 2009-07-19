@@ -1,16 +1,20 @@
 module GraphRewrite.Main.Visualize
-    ( renderDot
+    ( renderDot, stateToDot, treeToDot
     ) where
 
 import GraphRewrite.Internal.DeltaFunctions
 import GraphRewrite.Internal.RewriteTypes
 
+import Data.IsEvaluated
 import Data.GraphViz
 import Data.Supply
 import Data.Graph.Inductive.Tree
 import qualified Data.Graph.Inductive.Graph as IG
 import Data.IntMap hiding (map, split)
 import Data.Maybe
+
+import Control.Monad
+
 import Prelude hiding (lookup, exp)
 
 lookupName :: RewriteSystem -> Int -> String
@@ -97,10 +101,74 @@ graphToGr ids rs (e, g) = insExpr (-1) ids e IG.empty
 
 grToDot :: Gr String String -> DotGraph
 grToDot gr = graphToDot gr []
-        (\(_,l) -> [FontColor (RGB 0x1f 0x33 0xb3), FontSize 12, FontName "Helvetica", Label l])
-        (\(_,_,l) -> [FontName "Helvetica", ArrowHead Normal, ArrowSize 0.3, Label l])
+        (\(_,l) -> [FontColor (RGB 0x1f 0x33 0xb3), FontSize 12, FontName "Helvetica", Label (Left l)])
+        (\(_,_,l) -> [FontName "Helvetica", ArrowHead Normal, ArrowSize 0.3, Label (Left l)])
 
 renderDot :: Supply Int -> RewriteSystem -> PointedGraph -> String
 renderDot = (((show . grToDot) .) .) . graphToGr
 
+stateToDot :: RewriteTree -> Context -> IO DotGraph
+stateToDot tree ctx = do
+  (supp', supp'') <- liftM split2 newEnumSupply
+  let attrs = [RankDir FromTop, PageDir Bl]
+
+  treelinks <- getTreeLinks supp' tree
+  let treenodeids = map fst treelinks
+  let treenodes = map (\x -> DotNode x (nodeattrs x (head treenodeids))) treenodeids
+  let treeedges = map (\(x,y) -> DotEdge x y [] False) (getEdges treelinks)
+
+  contextlinks <- getContextLinks supp'' ctx (fst $ head treelinks)
+  let contextnodeids = map fst contextlinks
+  let contextnodes = map (\x -> DotNode x (nodeattrs 0 1)) contextnodeids
+  let contextedges = map (\(x,y) -> DotEdge x y [] False) (getEdges contextlinks)
+
+  return $ DotGraph True False Nothing attrs (contextnodes ++ treenodes) (contextedges ++ treeedges)
+    where
+      nodeattrs :: Int -> Int -> [Attribute]
+      nodeattrs n m
+          | n == m = (Color $ Left $ RGB 0 0 255) : (nodeattrs 0 1)
+          | otherwise = [Height 0.1, Width 0.1, FixedSize True, Shape Circle, Style (Stl Filled Nothing), Label (Left "")]
+
+getContextLinks :: Supply Int -> Context -> Int -> IO [(Int, [Int])]
+getContextLinks n (h:t) prev = do
+  let (n1, n2, n3, n4) = split4 n
+  leftlinks <- (liftM concat) $ mapM (uncurry getTreeLinks) (zip (split n1) (reverse $ left h))
+  rightlinks <- (liftM concat) $ mapM (uncurry getTreeLinks) (zip (split n2) (rght h))
+  let links = leftlinks ++ rightlinks
+  let cur = supplyValue n3
+  rest <- getContextLinks n4 t cur
+  return $ (cur, prev : map fst links) : links ++ rest
+
+getContextLinks _ _ prev = return [(prev, [])]
+
+treeToDot :: RewriteTree -> IO DotGraph
+treeToDot t = do
+  let attrs = []
+  supp <- newEnumSupply
+  links <- getTreeLinks supp t
+  let nodeids = map fst links
+  let nodes = map (\x -> DotNode x nodeattrs) nodeids
+  let edges = map (\(x,y) -> DotEdge x y [] False) (getEdges links)
+  return $ DotGraph True False Nothing attrs nodes edges
+    where
+      nodeattrs = [Height 0.1, Width 0.1, FixedSize True, Shape Circle, Style (Stl Filled Nothing), Label (Left "")]
+
+getEdges :: [(Int, [Int])] -> [(Int, Int)]
+getEdges ((h1, (h2:t1)):t2) = (h1, h2) : getEdges ((h1,t1):t2)
+getEdges ((_, []):t2) = getEdges t2
+getEdges [] = []
+
+getTreeLinks :: Supply Int -> RewriteTree -> IO [(Int, [Int])]
+getTreeLinks n t = do
+  evaled <- isEvaluated t
+  if evaled then
+      case t of
+        Step _ ts -> do
+                 let (n', n'') = split2 n
+                 let ts' = zip (split n') ts
+                 moar <- mapM (uncurry getTreeLinks) ts'
+                 let moarids = map (fst . head) moar
+                 return $ (supplyValue n'', moarids) : concat moar
+   else
+      return [(supplyValue n, [])]
 

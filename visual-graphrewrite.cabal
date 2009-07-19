@@ -37,7 +37,7 @@ library
         build-depends:    ipprint >= 0.3
         build-depends:    fgl >= 5.4.2.2
         build-depends:    pretty >= 1.0.1.0
-        build-depends:    graphviz == 2009.5.*
+        build-depends:    graphviz == 2999.*
         other-modules:    GraphRewrite.Main.CmdLineOpts,
                           GraphRewrite.Main.Visualize
         ghc-options:      -Wall -fno-warn-name-shadowing -fno-warn-incomplete-patterns

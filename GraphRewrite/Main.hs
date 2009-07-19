@@ -5,11 +5,14 @@ import GraphRewrite
 import GraphRewrite.Main.Welcome
 import GraphRewrite.Main.CmdLineOpts
 import GraphRewrite.Main.Utils
+import GraphRewrite.Main.Visualize
 
 
 import qualified Graphics.UI.Gtk as G
 import qualified Graphics.UI.Gtk.Glade as G
 import qualified Graphics.Rendering.Cairo.SVG as C
+
+import Data.GraphViz
 
 import Language.Haskell.Parser -- parseModule
 import IPPrint --pprint
@@ -213,7 +216,9 @@ refresh mstate = do
 
   dg <- stateToDot (current state) (history state)
 
+  when (debug $ opts state) (putStrLn $ "DEBUG: isValidGraph: " ++ (show $ isValidGraph dg))
   when (debug $ opts state) (putStrLn $ "DEBUG: " ++ show dg)
+
 
   svgmap <- dotToSVG (dotexe state) (show dg)
   updateCanvas svgmap (sMap state)
