@@ -99,7 +99,10 @@ where
       -> Expr -- ^ Expression to be dereferenced. If not an SRef then this will be the result.
       -> Graph -- ^ Images of SRefs
       -> Expr -- ^ Dereferenced expression.
-  deref rs e@(SRef _) im = deref rs (deref' rs e im) im
+  deref rs e@(SRef _) im = deref rs e' im''
+      where
+        (e', im') = deref' rs e im
+        im'' = im `union` im'
   deref _ e _ = e
 
   -- | Replace SRef structure for the referenced expression. This is a shallow implementation. See also: 'deref'.
@@ -107,11 +110,11 @@ where
       :: RewriteSystem
       -> Expr
       -> Graph
-      -> Expr
+      -> (Expr, Graph)
   deref' rs (SRef ref) im = case lookup ref im of
-                              Just e -> e
+                              Just e -> (e, empty)
                               Nothing -> case lookup ref (rules rs) of
-                                          Just [r] -> exp r
+                                          Just [r] -> (exp r, graph r)
                                           Just _  -> error $ "There is a problem dereferencing " ++ show ref ++ ". Check your source."
                                           Nothing -> error $ "No reference found for " ++ show ref ++ ". This shouldn't happen."
 

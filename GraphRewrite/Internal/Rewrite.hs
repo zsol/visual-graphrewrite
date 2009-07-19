@@ -39,6 +39,14 @@ module GraphRewrite.Internal.Rewrite
   rewriteStepsFine :: RewriteSystem -> Expr -> Graph -> RewriteTree
   rewriteStepsFine rs e g = Step (e,g) [rewriteStepFine rs e g]
 
+  -- | Main interface
+  rewrite
+      :: RewriteSystem
+      -> Expr
+      -> Graph
+      -> RewriteTree
+  rewrite rs e g = Step (e, g) [rewriteStepFine rs e g] -- could use some branching based on choices of next target
+
   -- | Does the rewriting on a specified expression and returns detailed results.
   rewriteStepFine
       :: RewriteSystem -- ^ The context.
@@ -47,8 +55,9 @@ module GraphRewrite.Internal.Rewrite
       -> RewriteTree    -- ^ Resulting tree which describes the rewriting process in great detail.
   rewriteStepFine rs e g =
       case e of
-        SRef _             -> let ref = deref' rs e g
-                             in Step (ref, g) [rewriteStepFine rs ref g]
+        SRef _             -> let (ref, g') = deref' rs e g
+                                  g''      = g `I.union` g'
+                             in Step (ref, g'') [rewriteStepFine rs ref g'']
         SApp (SApp _ _) _  -> let
                                  (flatExpr, flatArgs) = flattenSApp rs (deref rs e g) g
                                  flatApp              = SApp flatExpr flatArgs
