@@ -97,12 +97,20 @@ configureBindings xml mstate = do
   upbutton <- G.xmlGetWidget xml G.castToButton "upbutton"
   downbutton <- G.xmlGetWidget xml G.castToButton "downbutton"
 
+  aboutmenu <- G.xmlGetWidget xml G.castToImageMenuItem "aboutmenuitem"
+  quitmenu <- G.xmlGetWidget xml G.castToImageMenuItem "quitmenuitem"
+
+  aboutwidget <- G.xmlGetWidget xml G.castToAboutDialog "aboutdialog"
+
   G.onClicked quitbutton $ G.widgetDestroy window
+  G.onActivateLeaf quitmenu $ G.widgetDestroy window
 
   G.onClicked leftbutton $ moveLeft mstate >> refresh mstate >> return ()
   G.onClicked rightbutton $ moveRight mstate >> refresh mstate >> return ()
   G.onClicked upbutton $ moveUp mstate >> refresh mstate >> return ()
   G.onClicked downbutton $ moveDown mstate >> refresh mstate >> return ()
+
+  G.onActivateLeaf aboutmenu $ G.dialogRun aboutwidget >> return ()
 
   return ()
 

@@ -15,6 +15,7 @@ cabal-version:       >= 1.6
 stability:           experimental
 data-files:          sample/*.hs
 data-files:          ui.glade
+data-files:          splash.svg
 extra-source-files:  GraphRewrite/Debug.hs
 extra-source-files:  README
 
