@@ -8,7 +8,7 @@ copyright:
 maintainer: zsol@elte.hu
 build-depends: base >=4.1.0.0, cairo >=0.10.0,
                containers >=0.2.0.0, directory >=1.0.0.3, fgl >=5.4.2.2,
-               glade >=0.10.0, graphviz ==2999.*, gtk >=0.10.0,
+               glade >=0.10.0, graphviz >=2999.1.0 && <3000, gtk >=0.10.0,
                haskell-src >=1.0.1.2, ipprint >=0.3, isevaluated >=0.3,
                lazysmallcheck >=0.3, parallel >=1.1.0.1, pretty >=1.0.1.0,
                process >=1.0.1.1, strict-concurrency >=0.2.1, svgcairo >=0.10.0,
@@ -21,7 +21,7 @@ synopsis: Visualize the graph-rewrite steps of a Haskell program
 description: Visualize the graph-rewrite steps of a Haskell program. Currently it only shows the right-hand-sides of rewrite rules (function alternatives).
 category: Development
 author: Zsolt Dollenstein
-tested-with: GHC >=6.10.2
+tested-with: GHC ==6.10.2
 data-files: sample/*.hs ui.glade
 data-dir: ""
 extra-source-files: GraphRewrite/Debug.hs README
