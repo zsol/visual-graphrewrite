@@ -59,28 +59,32 @@ module GraphRewrite.Internal.Rewrite
                                   g''      = g `I.union` g'
                              in Step (ref, g'') [rewriteStepFine rs ref g'']
         SApp (SApp _ _) _  -> let
-                                 (flatExpr, flatArgs) = flattenSApp rs (deref rs e g) g
+                                 (flatExpr, flatArgs) = flattenSApp rs e g
                                  flatApp              = SApp flatExpr flatArgs
                              in Step (flatApp,g) [rewriteStepFine rs flatApp g]
         SApp (SFun ar f) l -> funInApp f ar l
         _                  -> Step (e,g) []
       where
-        funInApp f _ari args = case I.lookup f (rules rs) of
-                                Just rls
-                                    | length args == realAri f ->
-                                        case firstMatchFine rs g args rls of
-                                          Just ((e',g'), trees) -> Step (e,g) (trees ++ [rewriteStepFine rs e' g'])
-                                          Nothing    -> Step (e,g) []
-                                    | length args >  realAri f -> case firstMatchFine rs g (take (realAri f) args) rls of --TODO: do this properly
-                                                             Just ((e,g), trees) -> Step (e,g) (trees ++ [rewriteStepFine rs e g])
-                                                             Nothing    -> Step (e,g) []
-                                    | otherwise          -> Step (e,g) [] -- FIXME: this is a partial application (slice maybe)
-                                Nothing -- no function definition found -> probably a delta function
-                                    -> let
-                                          steps = map rewriteExpFine args
-                                          fname = fromMaybe (error $ "No name found for function: " ++ show f) (I.lookup f (names rs))
-                                          delta = fromMaybe (error $ "Cannot rewrite delta: " ++ fname) (rewriteDelta fname (map (fst . lastGraph) steps))
-                                      in Step (e,g) (steps ++ [rewriteStepFine rs delta I.empty])
+        funInApp f _ari args
+            = case I.lookup f (rules rs) of
+                Just rls
+                    | length args == realAri f ->
+                        case firstMatchFine rs g args rls of
+                          Just ((e',g'), trees) -> Step (e,g) (trees ++ [rewriteStepFine rs e' g'])
+                          Nothing               -> Step (e,g) []
+                    | length args >  realAri f ->
+                        case firstMatchFine rs g (take (realAri f) args) rls of --TODO: do this properly
+                          Just ((e,g), trees) -> Step (e,g) (trees ++ [rewriteStepFine rs e g])
+                          Nothing             -> Step (e,g) []
+                    | otherwise -> Step (e,g) [] -- FIXME: this is a partial application (slice maybe)
+                Nothing -- no function definition found -> probably a delta function
+                    -> let
+                       steps = map rewriteExpFine args
+                       fError = error $ "No name found for function: " ++ show f
+                       dError = error $ "Cannot rewrite delta: " ++ fname
+                       fname = fromMaybe fError (I.lookup f (names rs))
+                       delta = fromMaybe dError (rewriteDelta fname (map (fst . lastGraph) steps))
+                      in Step (e,g) (steps ++ [rewriteStepFine rs delta I.empty])
         rewriteExpFine = flip (rewriteStepFine rs) g
         realAri f = length $ patts $ head $ fromJust $ I.lookup f (rules rs)
 
