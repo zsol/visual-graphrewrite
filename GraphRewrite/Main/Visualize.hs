@@ -41,7 +41,7 @@ genName rs = gName (-1)  where
       rearrange _ [a,b] = addParents True $ unwords [b,a]
       rearrange _ [a] = addParents True a
 
-      ip = head $ [ip | (ip, n)<-deltaNames, n == fn] ++ [Prefix]
+      ip = head $ [ip | (ip, n)<- deltaNames, n == fn] ++ [Prefix]
       fn = gName 10 f
 
       (f, xs) = flattenSApp e
@@ -101,8 +101,8 @@ graphToGr ids rs (e, g) = insExpr (-1) ids e IG.empty
 
 grToDot :: Gr String String -> DotGraph
 grToDot gr = graphToDot gr []
-        (\(_,l) -> [FontColor (RGB 0x1f 0x33 0xb3), FontSize 12, FontName "Helvetica", Label (Left l)])
-        (\(_,_,l) -> [FontName "Helvetica", ArrowHead Normal, ArrowSize 0.3, Label (Left l)])
+        (\(_,l) -> [FontColor (RGB 0x1f 0x33 0xb3), FontSize 12, FontName "Helvetica", Label (StrLabel l)])
+        (\(_,_,l) -> [FontName "Helvetica", ArrowHead Normal, ArrowSize 0.3, Label (StrLabel l)])
 
 renderDot :: Supply Int -> RewriteSystem -> PointedGraph -> String
 renderDot = (((show . grToDot) .) .) . graphToGr
@@ -126,8 +126,8 @@ stateToDot tree ctx = do
     where
       nodeattrs :: Int -> Int -> [Attribute]
       nodeattrs n m
-          | n == m = (Color $ Left $ RGB 0 0 255) : (nodeattrs 0 1)
-          | otherwise = [Height 0.1, Width 0.1, FixedSize True, Shape Circle, Style (Stl Filled Nothing), Label (Left "")]
+          | n == m = (Color $ [RGB 0 0 255]) : (nodeattrs 0 1)
+          | otherwise = [Height 0.1, Width 0.1, FixedSize True, Shape Circle, Style (Stl Filled Nothing), Label (StrLabel "")]
 
 getContextLinks :: Supply Int -> Context -> Int -> IO [(Int, [Int])]
 getContextLinks n (h:t) prev = do
@@ -151,7 +151,7 @@ treeToDot t = do
   let edges = map (\(x,y) -> DotEdge x y [] False) (getEdges links)
   return $ DotGraph True False Nothing attrs nodes edges
     where
-      nodeattrs = [Height 0.1, Width 0.1, FixedSize True, Shape Circle, Style (Stl Filled Nothing), Label (Left "")]
+      nodeattrs = [Height 0.1, Width 0.1, FixedSize True, Shape Circle, Style (Stl Filled Nothing), Label (StrLabel "")]
 
 getEdges :: [(Int, [Int])] -> [(Int, Int)]
 getEdges ((h1, (h2:t1)):t2) = (h1, h2) : getEdges ((h1,t1):t2)
