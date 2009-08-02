@@ -1,85 +1,86 @@
-name:                visual-graphrewrite
-version:             0.4
-synopsis:            Visualize the graph-rewrite steps of a Haskell program
-description:         Visualize the graph-rewrite steps of a Haskell program. Currently it only shows the right-hand-sides of rewrite rules (function alternatives).
-category:            Development
-license:             BSD3
-license-file:        LICENSE
-author:              Zsolt Dollenstein
-maintainer:          zsol@elte.hu
-homepage:            http://github.com/zsol/visual-graphrewrite/
-bug-reports:         http://github.com/zsol/visual-graphrewrite/issues
-build-type:          Simple
-tested-with:         GHC==6.10.2
-cabal-version:       >= 1.6
-stability:           experimental
-data-files:          sample/*.hs
-data-files:          ui.glade
-data-files:          splash.svg
-extra-source-files:  GraphRewrite/Debug.hs
-extra-source-files:  README
-
-
-library
-        exposed-modules:  GraphRewrite
-        exposed-modules:  GraphRewrite.Internal.Rename
-        exposed-modules:  GraphRewrite.Internal.SimpleHaskell
-        exposed-modules:  GraphRewrite.Internal.Convert
-        exposed-modules:  GraphRewrite.Internal.RewriteApp
-        exposed-modules:  GraphRewrite.Internal.RewriteTypes
-        exposed-modules:  GraphRewrite.Internal.Rewrite
-        exposed-modules:  GraphRewrite.Internal.DeltaFunctions
-
-        build-depends:    base >= 4.1.0.0
-        build-depends:    containers >= 0.2.0.0
-        build-depends:    value-supply >= 0.5
-        build-depends:    lazysmallcheck >= 0.3
-        build-depends:    haskell-src >= 1.0.1.2
-        build-depends:    ipprint >= 0.3
-        build-depends:    fgl >= 5.4.2.2
-        build-depends:    pretty >= 1.0.1.0
-        build-depends:    graphviz == 2999.*
-        other-modules:    GraphRewrite.Main.CmdLineOpts,
-                          GraphRewrite.Main.Visualize
-        ghc-options:      -Wall -fno-warn-name-shadowing -fno-warn-incomplete-patterns
-
-
-executable visual-graphrewrite
-        build-depends:    base >= 4.1.0.0
-        build-depends:    containers >= 0.2.0.0
-        build-depends:    value-supply >= 0.5
-        build-depends:    lazysmallcheck >= 0.3
-        build-depends:    haskell-src >= 1.0.1.2
-        build-depends:    ipprint >= 0.3
-        build-depends:    strict-concurrency >= 0.2.1
-        build-depends:    parallel >= 1.1.0.1
-        build-depends:    directory >= 1.0.0.3
-        build-depends:    process >= 1.0.1.1
-        build-depends:    fgl >= 5.4.2.2
-        build-depends:    pretty >= 1.0.1.0
-        build-depends:    gtk >= 0.10.0
-        build-depends:    svgcairo >= 0.10.0
-        build-depends:    cairo >= 0.10.0
-        build-depends:    glade >= 0.10.0
-        build-depends:    isevaluated >= 0.3
-        main-is:    GraphRewrite/Main.hs
-        other-modules:       GraphRewrite,
-                     GraphRewrite.Internal.Rename,
-                     GraphRewrite.Internal.SimpleHaskell,
-                     GraphRewrite.Internal.Convert,
-                     GraphRewrite.Internal.RewriteApp,
-                     GraphRewrite.Internal.RewriteTypes,
-                     GraphRewrite.Internal.Rewrite,
-                     GraphRewrite.Internal.DeltaFunctions,
-                     GraphRewrite.Main.CmdLineOpts,
-                     GraphRewrite.Main.Visualize,
-                     GraphRewrite.Main.Welcome,
-                     GraphRewrite.Main.Utils,
-                     Paths_visual_graphrewrite
-        ghc-options:      -Wall -fno-warn-name-shadowing -fno-warn-incomplete-patterns
-
-Source-Repository head
-   type:          git
-   location:      git://github.com/zsol/visual-graphrewrite.git
-
-
+name: visual-graphrewrite
+version: 0.4
+cabal-version: >=1.6
+build-type: Simple
+license: BSD3
+license-file: LICENSE
+copyright:
+maintainer: zsol@elte.hu
+build-depends: base >=4.1.0.0, cairo >=0.10.0,
+               containers >=0.2.0.0, directory >=1.0.0.3, fgl >=5.4.2.2,
+               glade >=0.10.0, graphviz >=2999.1.0 && <3000, gtk >=0.10.0,
+               haskell-src >=1.0.1.2, ipprint >=0.3, isevaluated >=0.3,
+               lazysmallcheck >=0.3, parallel >=1.1.0.1, pretty >=1.0.1.0,
+               process >=1.0.1.1, strict-concurrency >=0.2.1, svgcairo >=0.10.0,
+               value-supply >=0.5
+stability: experimental
+homepage: http://github.com/zsol/visual-graphrewrite/
+package-url:
+bug-reports: http://github.com/zsol/visual-graphrewrite/issues
+synopsis: Visualize the graph-rewrite steps of a Haskell program
+description: Visualize the graph-rewrite steps of a Haskell program. Currently it only shows the right-hand-sides of rewrite rules (function alternatives).
+category: Development
+author: Zsolt Dollenstein
+tested-with: GHC ==6.10.2
+data-files: sample/*.hs ui.glade
+data-dir: ""
+extra-source-files: GraphRewrite/Debug.hs README
+extra-tmp-files:
+exposed-modules: GraphRewrite GraphRewrite.Internal.RewriteTypes
+                 GraphRewrite.Internal.Convert GraphRewrite.Internal.RewriteApp
+                 GraphRewrite.Internal.Rename GraphRewrite.Internal.SimpleHaskell
+                 GraphRewrite.Internal.Rewrite GraphRewrite.Internal.DeltaFunctions
+exposed: True
+buildable: True
+build-tools:
+cpp-options:
+cc-options:
+ld-options:
+pkgconfig-depends:
+frameworks:
+c-sources:
+extensions:
+extra-libraries:
+extra-lib-dirs:
+includes:
+install-includes:
+include-dirs:
+hs-source-dirs: .
+other-modules: GraphRewrite.Main.Visualize
+               GraphRewrite.Main.CmdLineOpts
+ghc-prof-options:
+ghc-shared-options:
+ghc-options: -Wall -fno-warn-name-shadowing -fno-warn-incomplete-patterns
+hugs-options:
+nhc98-options:
+jhc-options:
+ 
+executable: visual-graphrewrite
+main-is: GraphRewrite/Main.hs
+buildable: True
+build-tools:
+cpp-options:
+cc-options:
+ld-options:
+pkgconfig-depends:
+frameworks:
+c-sources:
+extensions:
+extra-libraries:
+extra-lib-dirs:
+includes:
+install-includes:
+include-dirs:
+hs-source-dirs: .
+other-modules: GraphRewrite GraphRewrite.Main.Visualize
+               GraphRewrite.Main.Utils GraphRewrite.Main.Welcome
+               GraphRewrite.Main.CmdLineOpts GraphRewrite.Internal.RewriteTypes
+               GraphRewrite.Internal.Convert GraphRewrite.Internal.RewriteApp
+               GraphRewrite.Internal.Rename GraphRewrite.Internal.SimpleHaskell
+               GraphRewrite.Internal.Rewrite GraphRewrite.Internal.DeltaFunctions
+ghc-prof-options:
+ghc-shared-options:
+ghc-options: -Wall -fno-warn-name-shadowing -fno-warn-incomplete-patterns
+hugs-options:
+nhc98-options:
+jhc-options:
