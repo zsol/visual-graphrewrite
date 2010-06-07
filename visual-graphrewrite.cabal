@@ -7,7 +7,8 @@ license-file: LICENSE
 copyright:
 maintainer: zsol@elte.hu
 build-depends: base >=4.1.0.0, cairo >=0.10.0,
-               containers >=0.2.0.0, directory >=1.0.0.3, fgl >=5.4.2.2,
+               containers >=0.2.0.0, directory >=1.0.0.3, fgl < 5.5, 
+               fgl >=5.4.2.2,
                glade >=0.10.0, graphviz >=2999.1.0 && <3000, gtk >=0.10.0,
                haskell-src >=1.0.1.2, ipprint >=0.3, isevaluated >=0.3,
                lazysmallcheck >=0.3, parallel >=1.1.0.1, pretty >=1.0.1.0,
