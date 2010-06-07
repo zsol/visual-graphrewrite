@@ -6,7 +6,7 @@ license: BSD3
 license-file: LICENSE
 copyright:
 maintainer: zsol@elte.hu
-build-depends: base >=4.1.0.0, cairo >=0.10.0,
+build-depends: base < 4.2, base >=4.1.0.0, cairo >=0.10.0,
                containers >=0.2.0.0, directory >=1.0.0.3, fgl < 5.5, 
                fgl >=5.4.2.2,
                glade >=0.10.0, graphviz >=2999.1.0 && <3000, gtk >=0.10.0,
